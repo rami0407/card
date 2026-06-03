@@ -529,7 +529,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                       )}
                       <button
                         className="btn-share-action highlight"
-                        onClick={() => copyToClipboard(`${window.location.origin}/?activity=${selectedTopic.id}`, 'link')}
+                        onClick={() => {
+                          const baseUrl = window.location.href.split('?')[0].split('#')[0];
+                          copyToClipboard(`${baseUrl}?activity=${selectedTopic.id}`, 'link');
+                        }}
                       >
                         {copiedLink ? <Check size={14} className="text-green" /> : <Copy size={14} />}
                         <span>{copiedLink ? 'تم نسخ الرابط' : 'نسخ رابط المشاركة للطلاب'}</span>
@@ -541,7 +544,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                     <input 
                       type="text" 
                       readOnly 
-                      value={`${window.location.origin}/?activity=${selectedTopic.id}`} 
+                      value={`${window.location.href.split('?')[0].split('#')[0]}?activity=${selectedTopic.id}`} 
                       className="share-link-input"
                     />
                   </div>
