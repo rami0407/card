@@ -972,12 +972,13 @@ button {
   overflow: hidden;
   border: 1px solid var(--border-glass);
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  background: rgba(14, 20, 38, 0.4);
 }
 
 .card-thumbnail-item img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   transition: var(--transition-smooth);
 }
 
@@ -1320,6 +1321,7 @@ button {
   cursor: pointer;
   transition: var(--transition-smooth);
   box-shadow: var(--shadow-card);
+  background: rgba(14, 20, 38, 0.4);
 }
 
 .card-image-container {
@@ -1330,7 +1332,7 @@ button {
 .student-card-item img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   transition: var(--transition-smooth);
 }
 
