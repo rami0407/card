@@ -252,8 +252,8 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
                       className="student-card-item"
                       onClick={() => setSelectedCard(card)}
                     >
-                      <div className="card-image-container">
-                        <img src={card.image} alt="بطاقة تعليمية للطلاب" />
+                      <div className="card-image-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}>
+                        <img src={card.image} alt="بطاقة تعليمية للطلاب" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                       </div>
                       <div className="card-hover-indicator">
                         <Sparkles size={20} />

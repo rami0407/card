@@ -616,8 +616,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                 ) : (
                   <div className="cards-thumbnail-grid">
                     {cards.map((card) => (
-                      <div key={card.id} className="card-thumbnail-item">
-                        <img src={card.image} alt="بطاقة تعليمية" />
+                      <div key={card.id} className="card-thumbnail-item" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <img src={card.image} alt="بطاقة تعليمية" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                         <div className="hover-delete-overlay">
                           <button 
                             className="delete-card-btn"
