@@ -9,7 +9,8 @@ import {
   Lock,
   User,
   Globe,
-  AlertTriangle
+  AlertTriangle,
+  X
 } from 'lucide-react';
 import type { Topic } from './services/storage';
 import { getTopicById, getTopicByCode } from './services/storage';
@@ -33,6 +34,12 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [urlError, setUrlError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  // Admin Login states
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [adminUsername, setAdminUsername] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [adminLoginError, setAdminLoginError] = useState<string | null>(null);
 
   // Parse URL on mount
   useEffect(() => {
@@ -106,6 +113,24 @@ function App() {
     }
   };
 
+  const handleAdminSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminLoginError(null);
+
+    const u = adminUsername.trim().toLowerCase();
+    const p = adminPassword.trim();
+
+    // Verify admin credentials
+    if ((u === 'admin' && (p === 'admin' || p === '2026')) || (u === 'teacher' && p === '123456')) {
+      setRole('admin');
+      setShowAdminLogin(false);
+      setAdminUsername('');
+      setAdminPassword('');
+    } else {
+      setAdminLoginError('اسم المستخدم أو رمز الدخول غير صحيح.');
+    }
+  };
+
   const handleBackToLanding = () => {
     setRole('none');
     // Keep name, clear the code for security
@@ -136,12 +161,78 @@ function App() {
       {/* Teacher Dashboard Trigger (Floating) */}
       <button 
         className="btn-teacher-dashboard-trigger" 
-        onClick={() => setRole('admin')}
+        onClick={() => setShowAdminLogin(true)}
         title="دخول المعلمين والمدراء للوحة التحكم"
       >
         <Settings size={18} />
         <span>بوابة المعلم / المدير</span>
       </button>
+
+      {/* Admin Login Modal Overlay */}
+      {showAdminLogin && (
+        <div className="canvas-modal-overlay" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 300 }}>
+          <div className="login-card glass-panel animate-scale-up" style={{ position: 'relative', width: '90%', maxWidth: '400px', padding: '30px' }}>
+            <button 
+              type="button" 
+              className="btn-close" 
+              onClick={() => {
+                setShowAdminLogin(false);
+                setAdminUsername('');
+                setAdminPassword('');
+                setAdminLoginError(null);
+              }}
+              style={{ position: 'absolute', top: '15px', left: '15px' }}
+              aria-label="إغلاق"
+            >
+              <X size={18} />
+            </button>
+
+            <form onSubmit={handleAdminSubmit} className="student-login-form" style={{ marginTop: '15px' }}>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '8px' }}>دخول المعلم / المدير 🔐</h2>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '20px' }}>يرجى إدخال بيانات الاعتماد للوصول للوحة التحكم وإدارة الفعاليات.</p>
+
+              <div className="form-group">
+                <label htmlFor="admin-username-input">اسم المستخدم:</label>
+                <input
+                  id="admin-username-input"
+                  type="text"
+                  placeholder="مثال: admin"
+                  value={adminUsername}
+                  onChange={(e) => setAdminUsername(e.target.value)}
+                  required
+                  autoFocus
+                />
+              </div>
+
+              <div className="form-group" style={{ marginTop: '15px' }}>
+                <label htmlFor="admin-password-input">رمز الدخول (كلمة السر):</label>
+                <input
+                  id="admin-password-input"
+                  type="password"
+                  placeholder="••••••••"
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  required
+                />
+              </div>
+
+              {adminLoginError && (
+                <div className="validation-error-alert" style={{ marginTop: '15px' }}>
+                  <AlertTriangle size={16} />
+                  <span>{adminLoginError}</span>
+                </div>
+              )}
+
+              <div className="form-actions mt-6" style={{ marginTop: '25px' }}>
+                <button type="submit" className="btn-primary btn-large w-full">
+                  <span>تسجيل الدخول</span>
+                  <Sparkles size={18} />
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <div className="onboarding-card glass-panel animate-scale-up">
         
