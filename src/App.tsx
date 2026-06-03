@@ -17,7 +17,9 @@ import { getTopicById, getTopicByCode } from './services/storage';
 type UserRole = 'none' | 'admin' | 'student';
 
 function App() {
+  console.log("digital_cards_app version: 1.0.1 - cache bust");
   const [role, setRole] = useState<UserRole>('none');
+
   const [studentName, setStudentName] = useState(() => {
     return localStorage.getItem('dc_student_name') || '';
   });
