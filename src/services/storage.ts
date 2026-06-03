@@ -111,9 +111,12 @@ export async function addTopic(
     description,
     coverImage,
     createdAt: Date.now(),
-    isPrivate,
-    accessCode
+    isPrivate
   };
+
+  if (isPrivate && accessCode) {
+    newTopic.accessCode = accessCode;
+  }
 
   await set(ref(db, `topics/${id}`), newTopic);
   return newTopic;
