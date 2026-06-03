@@ -9,11 +9,13 @@ import {
 import type { Topic, Card } from '../services/storage';
 import { getTopics, getCards } from '../services/storage';
 import { DrawingCanvas } from './DrawingCanvas';
+import { t, type LangType } from '../services/i18n';
 
 interface StudentPortalProps {
   onBackToRoles: () => void;
   initialActivity?: Topic | null;
   initialStudentName?: string;
+  lang: LangType;
 }
 
 const AVATARS = [
@@ -23,7 +25,8 @@ const AVATARS = [
 export const StudentPortal: React.FC<StudentPortalProps> = ({ 
   onBackToRoles, 
   initialActivity, 
-  initialStudentName 
+  initialStudentName,
+  lang
 }) => {
   const [studentName, setStudentName] = useState(() => {
     return initialStudentName || localStorage.getItem('dc_student_name') || '';
@@ -105,15 +108,15 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
             <div className="avatar-glow">{studentAvatar}</div>
             
             <form onSubmit={handleSaveStudentName} className="student-login-form">
-              <h2>مرحباً بك يا بطل! 🌟</h2>
-              <p>أدخل اسمك واختر صورتك الرمزية لتبدأ رحلتك التفاعلية معنا.</p>
+              <h2>{t('welcome_hero', lang)}</h2>
+              <p>{t('welcome_hero_desc', lang)}</p>
 
               <div className="form-group">
-                <label htmlFor="student-name-input">اكتب اسمك هنا:</label>
+                <label htmlFor="student-name-input">{t('enter_name_here', lang)}</label>
                 <input
                   id="student-name-input"
                   type="text"
-                  placeholder="مثال: أحمد، سارة، فاطمة..."
+                  placeholder={t('student_name_placeholder', lang)}
                   value={studentName}
                   onChange={(e) => setStudentName(e.target.value)}
                   maxLength={15}
@@ -124,7 +127,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
 
               {/* Avatar Selector */}
               <div className="form-group">
-                <label>اختر الرمز المفضل لديك:</label>
+                <label>{t('choose_avatar', lang)}</label>
                 <div className="avatar-grid">
                   {AVATARS.map((av) => (
                     <button
@@ -141,7 +144,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
 
               <div className="form-actions mt-6">
                 <button type="submit" className="btn-primary btn-large w-full">
-                  <span>أنا مستعد للبدء!</span>
+                  <span>{t('ready_start_btn', lang)}</span>
                   <Sparkles size={18} />
                 </button>
                 
@@ -150,7 +153,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
                   className="btn-secondary w-full mt-2" 
                   onClick={onBackToRoles}
                 >
-                  العودة للواجهة الرئيسية
+                  {t('back_main_interface', lang)}
                 </button>
               </div>
             </form>
@@ -165,16 +168,16 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
             <div className="student-profile-info">
               <span className="profile-avatar">{studentAvatar}</span>
               <div className="profile-text">
-                <h3>أهلاً بك، {studentName}! 👋</h3>
+                <h3>{t('student_welcome', lang, { name: studentName })}</h3>
                 <button className="btn-link" onClick={handleResetStudent}>
-                  (تغيير الاسم)
+                  {t('change_name', lang)}
                 </button>
               </div>
             </div>
 
             <div className="student-header-actions">
               <button className="back-btn" onClick={onBackToRoles}>
-                <span>واجهة تسجيل الدخول</span>
+                <span>{t('back_login_portal', lang)}</span>
                 <ArrowRight size={18} />
               </button>
             </div>
@@ -184,15 +187,15 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
             /* ================= SELECT TOPIC VIEW ================= */
             <div className="topics-explorer animate-fade-in">
               <div className="explorer-hero">
-                <h1>اختر موضوعاً لتستعرض بطاقاته 📚</h1>
-                <p>اضغط على أي موضوع أدناه لتشاهد البطاقات التعليمية التي صممها لك المعلم.</p>
+                <h1>{t('select_topic_title', lang)}</h1>
+                <p>{t('select_topic_desc', lang)}</p>
               </div>
 
               {topics.length === 0 ? (
                 <div className="student-empty-state">
                   <Smile size={48} className="empty-icon" />
-                  <h3>لا توجد مواضيع متاحة الآن</h3>
-                  <p>اطلب من معلمك أو مدير المدرسة رفع مواضيع وبطاقات تعليمية جديدة.</p>
+                  <h3>{t('no_topics_available', lang)}</h3>
+                  <p>{t('no_topics_desc', lang)}</p>
                 </div>
               ) : (
                 <div className="student-topics-grid">
@@ -207,9 +210,9 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
                       </div>
                       <div className="topic-info">
                         <h3>{topic.name}</h3>
-                        <p>{topic.description || 'تحدّث واكتب على بطاقات هذا الموضوع الرائع.'}</p>
+                        <p>{topic.description || (lang === 'ar' ? 'تحدّث واكتب على بطاقات هذا الموضوع الرائع.' : 'דבר וכתוב על כרטיסיות הנושא הנהדר הזה.')}</p>
                         <div className="topic-action-bar">
-                          <span>تصفح البطاقات</span>
+                          <span>{t('browse_cards', lang)}</span>
                           <ChevronLeft size={16} />
                         </div>
                       </div>
@@ -226,23 +229,23 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
               <div className="explorer-subheader">
                 <button className="back-link" onClick={handleDeselectTopic}>
                   <ArrowRight size={18} />
-                  <span>العودة لقائمة المواضيع</span>
+                  <span>{t('back_topics_list', lang)}</span>
                 </button>
                 <div className="selected-topic-title">
-                  <h2>موضوع الدرس: <span className="highlight">{selectedTopic.name}</span></h2>
+                  <h2>{t('topic_lesson', lang)} <span className="highlight">{selectedTopic.name}</span></h2>
                 </div>
               </div>
 
               <div className="cards-instructions">
                 <Sparkles size={18} className="icon-gold" />
-                <p>اختر البطاقة التي تود التحدث والكتابة عنها بالضغط عليها لتكبيرها والرسم عليها!</p>
+                <p>{t('cards_instructions', lang)}</p>
               </div>
 
               {cards.length === 0 ? (
                 <div className="student-empty-state">
                   <Layers size={40} className="empty-icon" />
-                  <h3>هذا الموضوع فارغ حالياً</h3>
-                  <p>لم يقم المعلم بإضافة بطاقات إلى هذا الموضوع بعد. يرجى مراجعة المواضيع الأخرى.</p>
+                  <h3>{t('empty_topic_title', lang)}</h3>
+                  <p>{t('empty_topic_desc', lang)}</p>
                 </div>
               ) : (
                 <div className="student-cards-grid">
@@ -257,7 +260,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
                       </div>
                       <div className="card-hover-indicator">
                         <Sparkles size={20} />
-                        <span>اضغط للكتابة والرسم</span>
+                        <span>{t('click_to_write_draw', lang)}</span>
                       </div>
                     </div>
                   ))}
@@ -274,6 +277,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
           imageSrc={selectedCard.image}
           cardId={selectedCard.id}
           onClose={() => setSelectedCard(null)}
+          lang={lang}
         />
       )}
     </div>

@@ -5,7 +5,6 @@ import {
   Settings, 
   Sparkles,
   Layers,
-  Heart,
   Lock,
   User,
   Globe,
@@ -14,12 +13,22 @@ import {
 } from 'lucide-react';
 import type { Topic } from './services/storage';
 import { getTopicById, getTopicByCode } from './services/storage';
+import { t, type LangType } from './services/i18n';
 
 type UserRole = 'none' | 'admin' | 'student';
 
 function App() {
   console.log("digital_cards_app version: 1.0.1 - cache bust");
   const [role, setRole] = useState<UserRole>('none');
+
+  const [lang, setLang] = useState<LangType>(() => {
+    return (localStorage.getItem('dc_lang') as LangType) || 'ar';
+  });
+
+  const handleLanguageChange = (newLang: LangType) => {
+    setLang(newLang);
+    localStorage.setItem('dc_lang', newLang);
+  };
 
   const [studentName, setStudentName] = useState(() => {
     return localStorage.getItem('dc_student_name') || '';
@@ -32,14 +41,14 @@ function App() {
   
   // UX states
   const [isLoading, setIsLoading] = useState(true);
-  const [urlError, setUrlError] = useState<string | null>(null);
-  const [validationError, setValidationError] = useState<string | null>(null);
+  const [urlError, setUrlError] = useState<'error_link_invalid' | 'error_loading' | null>(null);
+  const [validationError, setValidationError] = useState<'validation_name_required' | 'error_code_invalid' | 'validation_code_required' | 'error_code_not_found' | 'error_network' | null>(null);
 
   // Admin Login states
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminUsername, setAdminUsername] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
-  const [adminLoginError, setAdminLoginError] = useState<string | null>(null);
+  const [adminLoginError, setAdminLoginError] = useState<'admin_login_error_text' | null>(null);
 
   // Parse URL on mount
   useEffect(() => {
@@ -54,11 +63,11 @@ function App() {
           if (topic) {
             setCurrentActivity(topic);
           } else {
-            setUrlError('عذراً، رابط الفعالية هذا غير صحيح أو قد تم حذف الفعالية من قِبل المعلم.');
+            setUrlError('error_link_invalid');
           }
         } catch (err) {
           console.error("فشل قراءة الفعالية من الرابط:", err);
-          setUrlError('حدث خطأ أثناء تحميل بيانات الفعالية.');
+          setUrlError('error_loading');
         }
       }
       setIsLoading(false);
@@ -72,7 +81,7 @@ function App() {
     setValidationError(null);
 
     if (!studentName.trim()) {
-      setValidationError('الرجاء إدخال اسمك أولاً للدخول.');
+      setValidationError('validation_name_required');
       return;
     }
 
@@ -83,7 +92,7 @@ function App() {
       // Case 1: Accessed via direct URL activity link
       if (currentActivity.isPrivate) {
         if (enteredCode.trim().toLowerCase() !== currentActivity.accessCode?.trim().toLowerCase()) {
-          setValidationError('رمز الدخول المكتوب غير صحيح. يرجى مراجعة الرمز المرسل من المعلم.');
+          setValidationError('error_code_invalid');
           return;
         }
       }
@@ -91,7 +100,7 @@ function App() {
     } else {
       // Case 2: Accessed landing page directly (Requires code lookup)
       if (!enteredCode.trim()) {
-        setValidationError('الرجاء إدخال رمز الفعالية التي تود الانضمام إليها.');
+        setValidationError('validation_code_required');
         return;
       }
 
@@ -102,11 +111,11 @@ function App() {
           setCurrentActivity(foundActivity);
           setRole('student');
         } else {
-          setValidationError('لم نجد أي فعالية مطابقة لهذا الرمز. تأكد من صحة الرمز المكون من 4 أرقام.');
+          setValidationError('error_code_not_found');
         }
       } catch (err) {
         console.error("خطأ أثناء البحث عن كود الفعالية:", err);
-        setValidationError('حدث خطأ في الشبكة المحلية أثناء البحث عن الفعالية.');
+        setValidationError('error_network');
       } finally {
         setIsLoading(false);
       }
@@ -127,7 +136,7 @@ function App() {
       setAdminUsername('');
       setAdminPassword('');
     } else {
-      setAdminLoginError('اسم المستخدم أو رمز الدخول غير صحيح.');
+      setAdminLoginError('admin_login_error_text');
     }
   };
 
@@ -139,7 +148,7 @@ function App() {
   };
 
   if (role === 'admin') {
-    return <AdminDashboard onBackToRoles={handleBackToLanding} />;
+    return <AdminDashboard onBackToRoles={handleBackToLanding} lang={lang} />;
   }
 
   if (role === 'student') {
@@ -148,6 +157,7 @@ function App() {
         onBackToRoles={handleBackToLanding}
         initialActivity={currentActivity}
         initialStudentName={studentName}
+        lang={lang}
       />
     );
   }
@@ -158,14 +168,24 @@ function App() {
       <div className="glow-circle glow-1"></div>
       <div className="glow-circle glow-2"></div>
 
+      {/* Language Switcher (Floating) */}
+      <button 
+        className="btn-language-switcher" 
+        onClick={() => handleLanguageChange(lang === 'ar' ? 'he' : 'ar')}
+        title={lang === 'ar' ? 'עברית' : 'العربية'}
+      >
+        <Globe size={18} />
+        <span>{lang === 'ar' ? 'עברית' : 'العربية'}</span>
+      </button>
+
       {/* Teacher Dashboard Trigger (Floating) */}
       <button 
         className="btn-teacher-dashboard-trigger" 
         onClick={() => setShowAdminLogin(true)}
-        title="دخول المعلمين والمدراء للوحة التحكم"
+        title={t('admin_login_title', lang)}
       >
         <Settings size={18} />
-        <span>بوابة المعلم / المدير</span>
+        <span>{t('teacher_btn', lang)}</span>
       </button>
 
       {/* Admin Login Modal Overlay */}
@@ -188,15 +208,15 @@ function App() {
             </button>
 
             <form onSubmit={handleAdminSubmit} className="student-login-form" style={{ marginTop: '15px' }}>
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '8px' }}>دخول المعلم / المدير 🔐</h2>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '20px' }}>يرجى إدخال بيانات الاعتماد للوصول للوحة التحكم وإدارة الفعاليات.</p>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '8px' }}>{t('admin_login_title', lang)}</h2>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '20px' }}>{t('admin_login_desc', lang)}</p>
 
               <div className="form-group">
-                <label htmlFor="admin-username-input">اسم المستخدم:</label>
+                <label htmlFor="admin-username-input">{t('username', lang)}</label>
                 <input
                   id="admin-username-input"
                   type="text"
-                  placeholder="مثال: admin"
+                  placeholder={t('username_placeholder', lang)}
                   value={adminUsername}
                   onChange={(e) => setAdminUsername(e.target.value)}
                   required
@@ -205,11 +225,11 @@ function App() {
               </div>
 
               <div className="form-group" style={{ marginTop: '15px' }}>
-                <label htmlFor="admin-password-input">رمز الدخول (كلمة السر):</label>
+                <label htmlFor="admin-password-input">{t('password', lang)}</label>
                 <input
                   id="admin-password-input"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder={t('password_placeholder', lang)}
                   value={adminPassword}
                   onChange={(e) => setAdminPassword(e.target.value)}
                   required
@@ -219,13 +239,13 @@ function App() {
               {adminLoginError && (
                 <div className="validation-error-alert" style={{ marginTop: '15px' }}>
                   <AlertTriangle size={16} />
-                  <span>{adminLoginError}</span>
+                  <span>{t(adminLoginError, lang)}</span>
                 </div>
               )}
 
               <div className="form-actions mt-6" style={{ marginTop: '25px' }}>
                 <button type="submit" className="btn-primary btn-large w-full">
-                  <span>تسجيل الدخول</span>
+                  <span>{t('login_btn', lang)}</span>
                   <Sparkles size={18} />
                 </button>
               </div>
@@ -241,21 +261,21 @@ function App() {
           <div className="logo-badge glow-badge">
             <Layers size={36} className="logo-icon" />
           </div>
-          <h1 className="main-title">العبارات الضوئية</h1>
-          <p className="subtitle">اكتب وتحدّث وعبّر عن البطاقات التعليمية التفاعلية</p>
+          <h1 className="main-title">{t('app_title', lang)}</h1>
+          <p className="subtitle">{t('app_subtitle', lang)}</p>
         </div>
 
         {/* Loading Overlay */}
         {isLoading ? (
           <div className="landing-loading">
             <div className="spinner"></div>
-            <span>جاري تحميل الفعالية...</span>
+            <span>{t('loading_activity', lang)}</span>
           </div>
         ) : urlError ? (
           /* Error State if URL Activity ID is invalid */
           <div className="landing-error-box animate-slide-in">
             <AlertTriangle size={32} className="icon-gold" />
-            <p>{urlError}</p>
+            <p>{urlError ? t(urlError, lang) : ''}</p>
             <button 
               className="btn-secondary mt-4 w-full"
               onClick={() => {
@@ -264,7 +284,7 @@ function App() {
                 setUrlError(null);
               }}
             >
-              الانتقال لصفحة الدخول العامة
+              {t('back_login_portal', lang)}
             </button>
           </div>
         ) : (
@@ -274,7 +294,7 @@ function App() {
             {/* Header info about direct activity */}
             {currentActivity && (
               <div className="active-activity-banner">
-                <span className="activity-label">أنت الآن تنضم لـ:</span>
+                <span className="activity-label">{t('joining_activity_label', lang)}</span>
                 <strong className="activity-name">{currentActivity.name}</strong>
                 <p className="activity-desc">{currentActivity.description}</p>
               </div>
@@ -284,14 +304,14 @@ function App() {
             <div className="form-group">
               <label htmlFor="student-name-field" className="input-label-with-icon">
                 <User size={16} className="icon-purple" />
-                <span>اسم الطالب:</span>
+                <span>{t('student_name', lang)}</span>
               </label>
               <input
                 id="student-name-field"
                 type="text"
                 value={studentName}
                 onChange={(e) => setStudentName(e.target.value)}
-                placeholder="اكتب اسمك الثلاثي هنا..."
+                placeholder={t('student_name_placeholder', lang)}
                 maxLength={25}
                 required
                 className="input-premium"
@@ -303,7 +323,7 @@ function App() {
               <div className="form-group">
                 <label htmlFor="access-code-field" className="input-label-with-icon">
                   <Lock size={16} className="icon-purple" />
-                  <span>رمز الدخول (الكود):</span>
+                  <span>{t('access_code', lang)}</span>
                 </label>
                 <input
                   id="access-code-field"
@@ -312,8 +332,8 @@ function App() {
                   onChange={(e) => setEnteredCode(e.target.value)}
                   placeholder={
                     currentActivity 
-                      ? "أدخل كود الدخول الخاص الذي أرسله المعلم..." 
-                      : "أدخل رمز الفعالية الخاصة المكون من 4 أرقام..."
+                      ? t('access_code_placeholder_direct', lang)
+                      : t('access_code_placeholder_general', lang)
                   }
                   maxLength={10}
                   required
@@ -324,7 +344,7 @@ function App() {
               /* If public activity */
               <div className="public-activity-note">
                 <Globe size={16} className="icon-gold" />
-                <span>هذه فعالية عامة - سيتم دخولك مباشرة بدون رمز دخول!</span>
+                <span>{t('public_activity_note', lang)}</span>
               </div>
             )}
 
@@ -332,13 +352,13 @@ function App() {
             {validationError && (
               <div className="validation-error-alert">
                 <AlertTriangle size={16} />
-                <span>{validationError}</span>
+                <span>{t(validationError, lang)}</span>
               </div>
             )}
 
             {/* Submit Action */}
             <button type="submit" className="btn-primary btn-large btn-landing-join w-full">
-              <span>انضم للمشاركة والتعلم</span>
+              <span>{t('join_btn', lang)}</span>
               <Sparkles size={18} />
             </button>
             
@@ -347,7 +367,7 @@ function App() {
 
         {/* Footer */}
         <div className="onboarding-footer mt-6">
-          <p>صُمم بـ <Heart size={14} className="heart-icon" /> لمستقبل تعليمي ذكي وتفاعلي</p>
+          <p>{t('footer_text', lang)}</p>
         </div>
 
       </div>

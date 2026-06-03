@@ -11,21 +11,23 @@ import {
   addComment, 
   addReply
 } from '../services/storage';
+import { t, type LangType } from '../services/i18n';
 
 interface DrawingCanvasProps {
   imageSrc: string;
   onClose: () => void;
   cardId: string;
+  lang: LangType;
 }
 
-export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ imageSrc, onClose, cardId }) => {
+export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ imageSrc, onClose, cardId, lang }) => {
   // Comments & Replies states
   const [comments, setComments] = useState<CardComment[]>([]);
   const [newCommentText, setNewCommentText] = useState('');
   const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
   const [replyTexts, setReplyTexts] = useState<Record<string, string>>({});
 
-  const currentStudentName = localStorage.getItem('dc_student_name') || 'زائر';
+  const currentStudentName = localStorage.getItem('dc_student_name') || t('visitor', lang);
   const currentStudentAvatar = localStorage.getItem('dc_student_avatar') || '😊';
 
   const loadComments = async () => {
@@ -70,11 +72,11 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ imageSrc, onClose,
   const formatTime = (timestamp: number) => {
     const diffMs = Date.now() - timestamp;
     const diffMins = Math.floor(diffMs / 60000);
-    if (diffMins < 1) return 'الآن';
-    if (diffMins < 60) return `منذ ${diffMins} د`;
+    if (diffMins < 1) return t('time_just_now', lang);
+    if (diffMins < 60) return t('time_minutes_ago', lang, { count: diffMins });
     const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `منذ ${diffHours} س`;
-    return new Date(timestamp).toLocaleDateString('ar-EG');
+    if (diffHours < 24) return t('time_hours_ago', lang, { count: diffHours });
+    return new Date(timestamp).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'he-IL');
   };
 
   return (
@@ -86,7 +88,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ imageSrc, onClose,
           <button className="btn-close" onClick={onClose} aria-label="إغلاق">
             <X size={20} />
           </button>
-          <h2>عرض البطاقة الرقمية والمناقشة</h2>
+          <h2>{t('modal_title', lang)}</h2>
         </div>
 
         {/* Workspace */}
@@ -111,7 +113,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ imageSrc, onClose,
             >
               <img 
                 src={imageSrc} 
-                alt="بطاقة تعليمية"
+                alt={t('modal_title', lang)}
                 style={{
                   width: '100%',
                   display: 'block',
@@ -125,7 +127,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ imageSrc, onClose,
             <div className="comments-panel glass-panel" style={{ width: '100%', maxWidth: '750px' }}>
               <div className="comments-header">
                 <MessageSquare size={18} className="icon-purple" />
-                <h3>نقاش وتعليقات الطلاب ({comments.length})</h3>
+                <h3>{t('discussion_title', lang, { count: comments.length })}</h3>
               </div>
 
               {/* Add main comment form */}
@@ -135,7 +137,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ imageSrc, onClose,
                   <textarea
                     value={newCommentText}
                     onChange={(e) => setNewCommentText(e.target.value)}
-                    placeholder="اكتب تعليقاً أو سؤالاً حول هذه البطاقة للطلاب..."
+                    placeholder={t('write_comment_placeholder', lang)}
                     rows={2}
                     className="comment-textarea"
                   />
@@ -148,7 +150,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ imageSrc, onClose,
               {/* Comments List */}
               <div className="comments-list">
                 {comments.length === 0 ? (
-                  <p className="no-comments-text">لا توجد تعليقات بعد. كن أول من يكتب تعليقاً ويبدأ النقاش!</p>
+                  <p className="no-comments-text">{t('no_comments_yet', lang)}</p>
                 ) : (
                   comments.map((comment) => (
                     <div key={comment.id} className="comment-item animate-slide-in">
@@ -176,7 +178,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ imageSrc, onClose,
                               }}
                             >
                               <CornerDownLeft size={12} />
-                              <span>ردّ على هذا التعليق ({comment.replies ? comment.replies.length : 0})</span>
+                              <span>{t('reply_to_comment', lang, { count: comment.replies ? comment.replies.length : 0 })}</span>
                             </button>
                           </div>
                         </div>
@@ -215,7 +217,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ imageSrc, onClose,
                                 const val = e.target.value;
                                 setReplyTexts(prev => ({ ...prev, [comment.id]: val }));
                               }}
-                              placeholder={`اكتب رداً على تعليق ${comment.studentName}...`}
+                              placeholder={t('reply_input_placeholder', lang, { name: comment.studentName })}
                               className="reply-text-input"
                               required
                               autoFocus

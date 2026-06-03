@@ -26,12 +26,14 @@ import {
   addCard, 
   deleteCard 
 } from '../services/storage';
+import { t, type LangType } from '../services/i18n';
 
 interface AdminDashboardProps {
   onBackToRoles: () => void;
+  lang: LangType;
 }
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles }) => {
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles, lang }) => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [cards, setCards] = useState<Card[]>([]);
@@ -157,7 +159,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
   const handleCreateTopic = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTopicName.trim() || !newTopicCover) {
-      alert("الرجاء إدخال اسم الموضوع وصورة الغلاف");
+      alert(t('validation_topic_required', lang));
       return;
     }
 
@@ -180,7 +182,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
       // Refresh list
       loadTopicsData();
     } catch (err) {
-      alert("حدث خطأ أثناء إضافة الموضوع: " + err);
+      alert(t('error_adding_topic', lang) + " " + err);
     }
   };
 
@@ -219,7 +221,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
     e.preventDefault();
     if (!selectedTopic) return;
     if (!editTopicName.trim() || !editTopicCover) {
-      alert("الرجاء إدخال اسم الموضوع وصورة الغلاف");
+      alert(t('validation_topic_required', lang));
       return;
     }
 
@@ -239,14 +241,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
       // Refresh list
       loadTopicsData();
     } catch (err) {
-      alert("حدث خطأ أثناء تعديل الموضوع: " + err);
+      alert(t('error_editing_topic', lang) + " " + err);
     }
   };
 
   // Handle topic deletion
   const handleDeleteTopic = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Avoid triggering topic selection click
-    if (window.confirm("هل أنت متأكد من حذف هذا الموضوع؟ سيتم حذف جميع البطاقات التابعة له أيضاً.")) {
+    if (window.confirm(t('delete_topic_confirm', lang))) {
       try {
         await deleteTopic(id);
         loadTopicsData();
@@ -254,7 +256,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
           setSelectedTopic(null);
         }
       } catch (err) {
-        alert("فشل حذف الموضوع: " + err);
+        alert(err);
       }
     }
   };
@@ -271,7 +273,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (!validImageTypes.includes(file.type)) {
-        setUploadError("بعض الملفات ليست صوراً صالحة. تم تخطيها.");
+        setUploadError(lang === 'ar' ? "بعض الملفات ليست صوراً صالحة. تم تخطيها." : "חלק מהקבצים אינם תמונות תקינות. הם דולגו.");
         continue;
       }
 
@@ -317,14 +319,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
 
   // Handle card deletion
   const handleDeleteCard = async (id: string) => {
-    if (window.confirm("هل أنت متأكد من حذف هذه البطاقة؟")) {
+    if (window.confirm(t('confirm_delete_card', lang))) {
       try {
         await deleteCard(id);
         if (selectedTopic) {
           loadCardsData(selectedTopic.id);
         }
       } catch (err) {
-        alert("فشل حذف البطاقة: " + err);
+        alert(err);
       }
     }
   };
@@ -340,20 +342,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
         <div className="header-info">
           <button className="back-btn" onClick={onBackToRoles}>
             <ArrowRight size={18} />
-            <span>العودة للرئيسية</span>
+            <span>{t('back_main_interface', lang)}</span>
           </button>
-          <h1>لوحة تحكم المعلم / المدير</h1>
+          <h1>{t('admin_portal_title', lang)}</h1>
         </div>
         
         {/* Stats Summary */}
         <div className="stats-badges">
           <div className="stat-badge">
             <BookOpen size={16} />
-            <span>الفعاليات: <strong>{totalTopics}</strong></span>
+            <span>{t('total_activities', lang)}: <strong>{totalTopics}</strong></span>
           </div>
           <div className="stat-badge">
             <Layers size={16} />
-            <span>البطاقات المرفوعة: <strong>{totalCards}</strong></span>
+            <span>{t('total_cards', lang)}: <strong>{totalCards}</strong></span>
           </div>
         </div>
       </div>
@@ -364,7 +366,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
           /* ================= TOPICS VIEW ================= */
           <div className="topics-management">
             <div className="section-title-bar">
-              <h2>المواضيع والفعاليات المتاحة</h2>
+              <h2>{t('topics_list_header', lang, { count: totalTopics })}</h2>
               <button 
                 className="btn-primary" 
                 onClick={() => {
@@ -374,7 +376,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                 }}
               >
                 <Plus size={18} />
-                <span>إنشاء فعالية جديدة</span>
+                <span>{t('create_new_activity', lang)}</span>
               </button>
             </div>
 
@@ -385,7 +387,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                   <div className="form-header">
                     <h3>
                       <FolderPlus size={20} className="icon-purple" />
-                      إضافة فعالية تعليمية جديدة
+                      {t('add_topic_modal_title', lang)}
                     </h3>
                     <button 
                       type="button" 
@@ -398,11 +400,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
 
                   <div className="form-body">
                     <div className="form-group">
-                      <label htmlFor="topic-name">اسم الموضوع:</label>
+                      <label htmlFor="topic-name">{t('topic_name_label', lang)}</label>
                       <input 
                         id="topic-name"
                         type="text" 
-                        placeholder="مثال: حيوانات الغابة، حروف الهجاء، الفضاء..."
+                        placeholder={t('topic_name_placeholder', lang)}
                         value={newTopicName}
                         onChange={(e) => setNewTopicName(e.target.value)}
                         required
@@ -410,19 +412,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="topic-desc">وصف بسيط (اختياري):</label>
+                      <label htmlFor="topic-desc">{t('topic_desc_label', lang)}</label>
                       <textarea 
                         id="topic-desc"
-                        placeholder="اكتب نبذة قصيرة للطلاب حول محتوى هذا الدرس..."
+                        placeholder={t('topic_desc_placeholder', lang)}
                         value={newTopicDesc}
                         onChange={(e) => setNewTopicDesc(e.target.value)}
                         rows={2}
                       />
                     </div>
 
-                    {/* NEW: Access Control Settings */}
+                    {/* Access Control Settings */}
                     <div className="form-group">
-                      <label>إعدادات الخصوصية والوصول للطلاب:</label>
+                      <label>{t('privacy_settings_label', lang)}</label>
                       <div className="privacy-toggle-group">
                         <button
                           type="button"
@@ -430,7 +432,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                           onClick={() => handlePrivacyToggle(false)}
                         >
                           <Globe size={16} />
-                          <span>عامة (بدون كود)</span>
+                          <span>{t('public_mode', lang)}</span>
                         </button>
                         <button
                           type="button"
@@ -438,13 +440,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                           onClick={() => handlePrivacyToggle(true)}
                         >
                           <Lock size={16} />
-                          <span>خاصة (برمز دخول)</span>
+                          <span>{t('private_mode', lang)}</span>
                         </button>
                       </div>
 
                       {isPrivate && (
                         <div className="code-generation-preview">
-                          <span>رمز الدخول المولد للفعالية:</span>
+                          <span>{t('generated_code_label', lang)}</span>
                           <strong className="generated-code-value">{accessCode}</strong>
                           <button
                             type="button"
@@ -454,14 +456,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                               setAccessCode(code);
                             }}
                           >
-                            توليد رمز آخر
+                            {t('generate_other_code', lang)}
                           </button>
                         </div>
                       )}
                     </div>
 
                     <div className="form-group">
-                      <label>صورة غلاف الموضوع:</label>
+                      <label>{t('topic_cover_label', lang)}</label>
                       <div className="cover-upload-zone">
                         {newTopicCover ? (
                           <div className="cover-preview">
@@ -472,13 +474,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                               onClick={() => setNewTopicCover('')}
                             >
                               <Trash2 size={16} />
-                              <span>حذف وصورة أخرى</span>
+                              <span>{lang === 'ar' ? "حذف وصورة أخرى" : "מחק ותמונה אחרת"}</span>
                             </button>
                           </div>
                         ) : (
                           <label className="upload-placeholder">
                             <Upload size={32} />
-                            <span>اضغط هنا لرفع صورة الغلاف</span>
+                            <span>{t('choose_cover_btn', lang)}</span>
                             <input 
                               type="file" 
                               accept="image/*" 
@@ -493,13 +495,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                   </div>
 
                   <div className="form-footer">
-                    <button type="submit" className="btn-success">حفظ وإنشاء الفعالية</button>
+                    <button type="submit" className="btn-success">{t('save_changes_btn', lang)}</button>
                     <button 
                       type="button" 
                       className="btn-secondary" 
                       onClick={() => setShowNewTopicForm(false)}
                     >
-                      إلغاء
+                      {t('cancel_btn', lang)}
                     </button>
                   </div>
                 </form>
@@ -510,14 +512,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
             {topics.length === 0 ? (
               <div className="empty-state-box">
                 <Sparkles size={40} className="icon-glow" />
-                <h3>لا توجد فعاليات مضافة بعد</h3>
-                <p>ابدأ بإنشاء موضوعك الأول لتمكين الطلاب من استعراض البطاقات والتعلم.</p>
+                <h3>{lang === 'ar' ? 'لا توجد فعاليات مضافة بعد' : 'אין פעילויות שנוספו עדיין'}</h3>
+                <p>{lang === 'ar' ? 'ابدأ بإنشاء موضوعك الأول لتمكين الطلاب من استعراض البطاقات والتعلم.' : 'התחל ביצירת הנושא הראשון שלך כדי לאפשר לתלמידים לעיין בכרטיסיות וללמוד.'}</p>
                 <button 
                   className="btn-primary mt-4" 
                   onClick={() => setShowNewTopicForm(true)}
                 >
                   <Plus size={18} />
-                  <span>إنشاء فعالية الآن</span>
+                  <span>{t('create_new_activity', lang)}</span>
                 </button>
               </div>
             ) : (
@@ -531,29 +533,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                     <div className="card-image-wrap">
                       <img src={topic.coverImage} alt={topic.name} />
                       <div className="card-badge">
-                        <span>{topicCardCounts[topic.id] || 0} بطاقة</span>
+                        <span>{t('topic_card_count', lang, { count: topicCardCounts[topic.id] || 0 })}</span>
                       </div>
                       
                       {/* Privacy Indicator Badge */}
                       <div className={`privacy-indicator-badge ${topic.isPrivate ? 'private' : 'public'}`}>
                         {topic.isPrivate ? <Lock size={12} /> : <Globe size={12} />}
-                        <span>{topic.isPrivate ? 'خاصة برمز' : 'عامة'}</span>
+                        <span>{topic.isPrivate ? t('activity_private', lang) : t('activity_public', lang)}</span>
                       </div>
                     </div>
                     
                     <div className="card-body">
                       <h3>{topic.name}</h3>
-                      <p>{topic.description || 'لا يوجد وصف مضاف لهذه الفعالية.'}</p>
+                      <p>{topic.description || t('empty_desc_placeholder', lang)}</p>
                       
                       <div className="card-actions">
                         <button className="manage-cards-link">
-                          <span>إدارة الفعالية</span>
+                          <span>{t('manage_cards', lang)}</span>
                           <ChevronLeft size={16} />
                         </button>
                         <button 
                           className="delete-topic-btn"
                           onClick={(e) => handleDeleteTopic(topic.id, e)}
-                          title="حذف الفعالية بالكامل"
+                          title={t('delete_topic_btn', lang)}
                         >
                           <Trash2 size={16} />
                         </button>
@@ -570,12 +572,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
             <div className="selected-topic-bar">
               <button className="back-link" onClick={() => setSelectedTopic(null)}>
                 <ArrowRight size={18} />
-                <span>العودة لقائمة الفعاليات</span>
+                <span>{t('back_activities_list', lang)}</span>
               </button>
               
               <div className="topic-meta-wrapper">
                 <div className="topic-meta">
-                  <h2>إدارة بطاقات الموضوع: <span className="text-purple">{selectedTopic.name}</span></h2>
+                  <h2>{t('manage_cards_topic', lang)} <span className="text-purple">{selectedTopic.name}</span></h2>
                   <p>{selectedTopic.description}</p>
                   <button 
                     type="button"
@@ -598,7 +600,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                     }}
                   >
                     <Edit3 size={14} />
-                    <span>تعديل إعدادات الفعالية (الاسم/الكود/الغلاف)</span>
+                    <span>{t('edit_activity_settings', lang)}</span>
                   </button>
                 </div>
                 
@@ -607,7 +609,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                   <div className="share-header">
                     <div className="status-indicator">
                       <span className={`status-dot ${selectedTopic.isPrivate ? 'private' : 'public'}`}></span>
-                      <span>{selectedTopic.isPrivate ? `فعالية خاصة (الرمز: ${selectedTopic.accessCode})` : 'فعالية عامة (مفتوحة للجميع)'}</span>
+                      <span>{selectedTopic.isPrivate ? `${t('activity_private', lang)} (${selectedTopic.accessCode})` : t('activity_public', lang)}</span>
                     </div>
                     <div className="share-action-buttons">
                       {selectedTopic.isPrivate && (
@@ -616,7 +618,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                           onClick={() => copyToClipboard(selectedTopic.accessCode || '', 'code')}
                         >
                           {copiedCode ? <Check size={14} className="text-green" /> : <Copy size={14} />}
-                          <span>{copiedCode ? 'تم نسخ الرمز' : 'نسخ رمز الدخول'}</span>
+                          <span>{copiedCode ? t('copied_code_alert', lang) : t('copy_code_btn', lang)}</span>
                         </button>
                       )}
                       <button
@@ -627,7 +629,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                         }}
                       >
                         {copiedLink ? <Check size={14} className="text-green" /> : <Copy size={14} />}
-                        <span>{copiedLink ? 'تم نسخ الرابط' : 'نسخ رابط المشاركة للطلاب'}</span>
+                        <span>{copiedLink ? t('copied_link_alert', lang) : t('copy_share_link', lang)}</span>
                       </button>
                     </div>
                   </div>
@@ -651,9 +653,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                 <div className="glass-panel uploader-panel">
                   <h3>
                     <Upload size={20} className="icon-purple" />
-                    رفع بطاقات جديدة للموضوع
+                    {t('upload_cards_header', lang)}
                   </h3>
-                  <p className="subtitle">يمكنك رفع عدة صور للبطاقات دفعة واحدة لتظهر للطلاب مباشرة.</p>
+                  <p className="subtitle">{t('upload_cards_desc', lang)}</p>
 
                   <div 
                     className={`drag-drop-zone ${isDragging ? 'dragging' : ''}`}
@@ -671,17 +673,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                     />
                     <label htmlFor="card-files" className="drag-drop-label">
                       <ImageIcon size={48} className="upload-icon" />
-                      <span className="title">اسحب الصور وأفلتها هنا</span>
-                      <span className="or">أو</span>
-                      <span className="browse-btn">تصفح من جهازك</span>
-                      <span className="limits">صيغ الصور المدعومة: PNG, JPG, WEBP</span>
+                      <span className="title">{t('drag_drop_images', lang)}</span>
+                      <span className="or">{lang === 'ar' ? 'أو' : 'או'}</span>
+                      <span className="browse-btn">{t('browse_files', lang)}</span>
+                      <span className="limits">{t('supported_formats', lang)}</span>
                     </label>
                   </div>
 
                   {isUploading && (
                     <div className="upload-progress-info">
                       <div className="spinner"></div>
-                      <span>جاري رفع وتخزين الصور محلياً...</span>
+                      <span>{t('uploading_progress', lang)}</span>
                     </div>
                   )}
 
@@ -696,25 +698,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
               {/* Cards Grid Section */}
               <div className="cards-display-column">
                 <div className="section-header">
-                  <h3>البطاقات المضافة حالياً ({cards.length})</h3>
+                  <h3>{t('added_cards_header', lang, { count: cards.length })}</h3>
                 </div>
 
                 {cards.length === 0 ? (
                   <div className="empty-state-box inline-empty">
                     <ImageIcon size={32} />
-                    <p>لا توجد بطاقات في هذا الموضوع حتى الآن.</p>
-                    <p className="small">استخدم نموذج الرفع الموضح بالجانب لإضافة صورك الأولى.</p>
+                    <p>{t('no_cards_in_topic', lang)}</p>
+                    <p className="small">{t('no_cards_desc', lang)}</p>
                   </div>
                 ) : (
                   <div className="cards-thumbnail-grid">
                     {cards.map((card) => (
                       <div key={card.id} className="card-thumbnail-item" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <img src={card.image} alt="بطاقة تعليمية" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                        <img src={card.image} alt={t('modal_title', lang)} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                         <div className="hover-delete-overlay">
                           <button 
                             className="delete-card-btn"
                             onClick={() => handleDeleteCard(card.id)}
-                            title="حذف البطاقة"
+                            title={t('delete_card_tooltip', lang)}
                           >
                             <Trash2 size={18} />
                           </button>
@@ -736,7 +738,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
               <div className="form-header">
                 <h3>
                   <Edit3 size={20} className="icon-purple" />
-                  تعديل إعدادات الفعالية
+                  {t('edit_modal_title', lang)}
                 </h3>
                 <button 
                   type="button" 
@@ -749,11 +751,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
 
               <div className="form-body">
                 <div className="form-group">
-                  <label htmlFor="edit-topic-name">اسم الموضوع:</label>
+                  <label htmlFor="edit-topic-name">{t('topic_name_label', lang)}</label>
                   <input 
                     id="edit-topic-name"
                     type="text" 
-                    placeholder="مثال: حيوانات الغابة، حروف الهجاء..."
+                    placeholder={t('topic_name_placeholder', lang)}
                     value={editTopicName}
                     onChange={(e) => setEditTopicName(e.target.value)}
                     required
@@ -761,10 +763,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="edit-topic-desc">وصف بسيط (اختياري):</label>
+                  <label htmlFor="edit-topic-desc">{t('topic_desc_label', lang)}</label>
                   <textarea 
                     id="edit-topic-desc"
-                    placeholder="اكتب نبذة قصيرة للطلاب حول محتوى هذا الدرس..."
+                    placeholder={t('topic_desc_placeholder', lang)}
                     value={editTopicDesc}
                     onChange={(e) => setEditTopicDesc(e.target.value)}
                     rows={2}
@@ -773,7 +775,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
 
                 {/* Access Control Settings */}
                 <div className="form-group">
-                  <label>إعدادات الخصوصية والوصول للطلاب:</label>
+                  <label>{t('privacy_settings_label', lang)}</label>
                   <div className="privacy-toggle-group">
                     <button
                       type="button"
@@ -781,7 +783,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                       onClick={() => handleEditPrivacyToggle(false)}
                     >
                       <Globe size={16} />
-                      <span>عامة (بدون كود)</span>
+                      <span>{t('public_mode', lang)}</span>
                     </button>
                     <button
                       type="button"
@@ -789,13 +791,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                       onClick={() => handleEditPrivacyToggle(true)}
                     >
                       <Lock size={16} />
-                      <span>خاصة (برمز دخول)</span>
+                      <span>{t('private_mode', lang)}</span>
                     </button>
                   </div>
 
                   {editIsPrivate && (
                     <div className="code-generation-preview">
-                      <span>رمز الدخول المولد للفعالية:</span>
+                      <span>{t('generated_code_label', lang)}</span>
                       <strong className="generated-code-value">{editAccessCode}</strong>
                       <button
                         type="button"
@@ -805,14 +807,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                           setEditAccessCode(code);
                         }}
                       >
-                        توليد رمز آخر
+                        {t('generate_other_code', lang)}
                       </button>
                     </div>
                   )}
                 </div>
 
                 <div className="form-group">
-                  <label>صورة غلاف الموضوع:</label>
+                  <label>{t('topic_cover_label', lang)}</label>
                   <div className="file-uploader-wrap">
                     <input 
                       type="file" 
@@ -823,13 +825,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                     />
                     <label htmlFor="edit-cover-upload" className="btn-file-select">
                       <ImageIcon size={16} />
-                      <span>اختر صورة غلاف جديدة...</span>
+                      <span>{t('choose_cover_new_btn', lang)}</span>
                     </label>
                   </div>
 
                   {editTopicCover && (
                     <div className="cover-preview mt-3">
-                      <img src={editTopicCover} alt="معاينة الغلاف الجديد" />
+                      <img src={editTopicCover} alt={t('topic_cover_label', lang)} />
                     </div>
                   )}
                 </div>
@@ -841,10 +843,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                   className="btn-secondary" 
                   onClick={() => setShowEditTopicForm(false)}
                 >
-                  إلغاء
+                  {t('cancel_btn', lang)}
                 </button>
                 <button type="submit" className="btn-primary">
-                  <span>حفظ التغييرات</span>
+                  <span>{t('save_changes_btn', lang)}</span>
                   <Sparkles size={16} />
                 </button>
               </div>
