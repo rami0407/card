@@ -90,7 +90,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ imageSrc, onClose,
         </div>
 
         {/* Workspace */}
-        <div className="canvas-modal-body">
+        <div className="canvas-modal-body" style={{ alignItems: 'flex-start' }}>
           <div className="modal-scrollable-content" style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             
             {/* Viewport for Card Image (Simple, no canvas) */}
