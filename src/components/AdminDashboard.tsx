@@ -7,6 +7,7 @@ import {
   Upload, 
   ChevronLeft, 
   BookOpen, 
+  Edit3,
   Layers,
   ArrowRight,
   Sparkles,
@@ -19,6 +20,7 @@ import type { Topic, Card } from '../services/storage';
 import { 
   getTopics, 
   addTopic, 
+  updateTopic,
   deleteTopic, 
   getCards, 
   addCard, 
@@ -53,6 +55,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
   const [isDragging, setIsDragging] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+
+  // Edit Topic states
+  const [showEditTopicForm, setShowEditTopicForm] = useState(false);
+  const [editTopicName, setEditTopicName] = useState('');
+  const [editTopicDesc, setEditTopicDesc] = useState('');
+  const [editTopicCover, setEditTopicCover] = useState<string>('');
+  const [editIsPrivate, setEditIsPrivate] = useState(false);
+  const [editAccessCode, setEditAccessCode] = useState('');
 
   // Fetch topics and calculate stats
   useEffect(() => {
@@ -171,6 +181,65 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
       loadTopicsData();
     } catch (err) {
       alert("حدث خطأ أثناء إضافة الموضوع: " + err);
+    }
+  };
+
+  // Edit Topic Helpers
+  const startEditTopic = () => {
+    if (!selectedTopic) return;
+    setEditTopicName(selectedTopic.name);
+    setEditTopicDesc(selectedTopic.description);
+    setEditTopicCover(selectedTopic.coverImage);
+    setEditIsPrivate(selectedTopic.isPrivate);
+    setEditAccessCode(selectedTopic.accessCode || '');
+    setShowEditTopicForm(true);
+  };
+
+  const handleEditCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      try {
+        const base64 = await fileToBase64(file);
+        setEditTopicCover(base64);
+      } catch (err) {
+        console.error("فشل تحويل الصورة:", err);
+      }
+    }
+  };
+
+  const handleEditPrivacyToggle = (val: boolean) => {
+    setEditIsPrivate(val);
+    if (val && !editAccessCode) {
+      const code = Math.floor(1000 + Math.random() * 9000).toString();
+      setEditAccessCode(code);
+    }
+  };
+
+  const handleSaveEditTopic = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTopic) return;
+    if (!editTopicName.trim() || !editTopicCover) {
+      alert("الرجاء إدخال اسم الموضوع وصورة الغلاف");
+      return;
+    }
+
+    try {
+      const updated = await updateTopic(
+        selectedTopic.id,
+        editTopicName,
+        editTopicDesc,
+        editTopicCover,
+        editIsPrivate,
+        editIsPrivate ? editAccessCode : undefined
+      );
+      
+      setSelectedTopic(updated);
+      setShowEditTopicForm(false);
+      
+      // Refresh list
+      loadTopicsData();
+    } catch (err) {
+      alert("حدث خطأ أثناء تعديل الموضوع: " + err);
     }
   };
 
@@ -508,6 +577,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
                 <div className="topic-meta">
                   <h2>إدارة بطاقات الموضوع: <span className="text-purple">{selectedTopic.name}</span></h2>
                   <p>{selectedTopic.description}</p>
+                  <button 
+                    type="button"
+                    className="btn-edit-topic"
+                    onClick={startEditTopic}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      background: 'rgba(139, 92, 246, 0.15)',
+                      border: '1px solid rgba(139, 92, 246, 0.3)',
+                      color: '#c084fc',
+                      padding: '6px 14px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      marginTop: '10px',
+                      transition: 'var(--transition-smooth)'
+                    }}
+                  >
+                    <Edit3 size={14} />
+                    <span>تعديل إعدادات الفعالية (الاسم/الكود/الغلاف)</span>
+                  </button>
                 </div>
                 
                 {/* NEW: Link sharing panel for student distribution */}
@@ -634,6 +726,129 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles })
               </div>
 
             </div>
+          </div>
+        )}
+
+        {/* Edit Topic Form Card */}
+        {showEditTopicForm && (
+          <div className="form-card-overlay">
+            <form onSubmit={handleSaveEditTopic} className="form-card animate-slide-in">
+              <div className="form-header">
+                <h3>
+                  <Edit3 size={20} className="icon-purple" />
+                  تعديل إعدادات الفعالية
+                </h3>
+                <button 
+                  type="button" 
+                  className="btn-icon-close" 
+                  onClick={() => setShowEditTopicForm(false)}
+                >
+                  <XIcon />
+                </button>
+              </div>
+
+              <div className="form-body">
+                <div className="form-group">
+                  <label htmlFor="edit-topic-name">اسم الموضوع:</label>
+                  <input 
+                    id="edit-topic-name"
+                    type="text" 
+                    placeholder="مثال: حيوانات الغابة، حروف الهجاء..."
+                    value={editTopicName}
+                    onChange={(e) => setEditTopicName(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="edit-topic-desc">وصف بسيط (اختياري):</label>
+                  <textarea 
+                    id="edit-topic-desc"
+                    placeholder="اكتب نبذة قصيرة للطلاب حول محتوى هذا الدرس..."
+                    value={editTopicDesc}
+                    onChange={(e) => setEditTopicDesc(e.target.value)}
+                    rows={2}
+                  />
+                </div>
+
+                {/* Access Control Settings */}
+                <div className="form-group">
+                  <label>إعدادات الخصوصية والوصول للطلاب:</label>
+                  <div className="privacy-toggle-group">
+                    <button
+                      type="button"
+                      className={`privacy-toggle-btn ${!editIsPrivate ? 'active' : ''}`}
+                      onClick={() => handleEditPrivacyToggle(false)}
+                    >
+                      <Globe size={16} />
+                      <span>عامة (بدون كود)</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`privacy-toggle-btn ${editIsPrivate ? 'active' : ''}`}
+                      onClick={() => handleEditPrivacyToggle(true)}
+                    >
+                      <Lock size={16} />
+                      <span>خاصة (برمز دخول)</span>
+                    </button>
+                  </div>
+
+                  {editIsPrivate && (
+                    <div className="code-generation-preview">
+                      <span>رمز الدخول المولد للفعالية:</span>
+                      <strong className="generated-code-value">{editAccessCode}</strong>
+                      <button
+                        type="button"
+                        className="btn-regenerate-code"
+                        onClick={() => {
+                          const code = Math.floor(1000 + Math.random() * 9000).toString();
+                          setEditAccessCode(code);
+                        }}
+                      >
+                        توليد رمز آخر
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label>صورة غلاف الموضوع:</label>
+                  <div className="file-uploader-wrap">
+                    <input 
+                      type="file" 
+                      id="edit-cover-upload" 
+                      accept="image/*" 
+                      onChange={handleEditCoverChange}
+                      style={{ display: 'none' }}
+                    />
+                    <label htmlFor="edit-cover-upload" className="btn-file-select">
+                      <ImageIcon size={16} />
+                      <span>اختر صورة غلاف جديدة...</span>
+                    </label>
+                  </div>
+
+                  {editTopicCover && (
+                    <div className="cover-preview mt-3">
+                      <img src={editTopicCover} alt="معاينة الغلاف الجديد" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="form-footer">
+                <button 
+                  type="button" 
+                  className="btn-secondary" 
+                  onClick={() => setShowEditTopicForm(false)}
+                >
+                  إلغاء
+                </button>
+                <button type="submit" className="btn-primary">
+                  <span>حفظ التغييرات</span>
+                  <Sparkles size={16} />
+                </button>
+              </div>
+            </form>
           </div>
         )}
       </div>

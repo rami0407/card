@@ -122,6 +122,36 @@ export async function addTopic(
   return newTopic;
 }
 
+export async function updateTopic(
+  id: string,
+  name: string,
+  description: string,
+  coverImage: string,
+  isPrivate: boolean,
+  accessCode?: string
+): Promise<Topic> {
+  const updatedTopic: Topic = {
+    id,
+    name,
+    description,
+    coverImage,
+    createdAt: Date.now(),
+    isPrivate
+  };
+
+  if (isPrivate && accessCode) {
+    updatedTopic.accessCode = accessCode;
+  }
+
+  const original = await getTopicById(id);
+  if (original) {
+    updatedTopic.createdAt = original.createdAt;
+  }
+
+  await set(ref(db, `topics/${id}`), updatedTopic);
+  return updatedTopic;
+}
+
 export async function deleteTopic(topicId: string): Promise<void> {
   // 1. Delete the topic itself
   await remove(ref(db, `topics/${topicId}`));
