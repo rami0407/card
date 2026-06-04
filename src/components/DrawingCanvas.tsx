@@ -18,17 +18,18 @@ interface DrawingCanvasProps {
   onClose: () => void;
   cardId: string;
   lang: LangType;
+  currentUser?: { name: string; avatar: string };
 }
 
-export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ imageSrc, onClose, cardId, lang }) => {
+export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ imageSrc, onClose, cardId, lang, currentUser }) => {
   // Comments & Replies states
   const [comments, setComments] = useState<CardComment[]>([]);
   const [newCommentText, setNewCommentText] = useState('');
   const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
   const [replyTexts, setReplyTexts] = useState<Record<string, string>>({});
 
-  const currentStudentName = localStorage.getItem('dc_student_name') || t('visitor', lang);
-  const currentStudentAvatar = localStorage.getItem('dc_student_avatar') || '😊';
+  const currentStudentName = currentUser?.name || localStorage.getItem('dc_student_name') || t('visitor', lang);
+  const currentStudentAvatar = currentUser?.avatar || localStorage.getItem('dc_student_avatar') || '😊';
 
   const loadComments = async () => {
     try {

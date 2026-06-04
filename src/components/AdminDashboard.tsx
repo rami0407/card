@@ -14,9 +14,14 @@ import {
   Lock,
   Globe,
   Copy,
-  Check
+  Check,
+  Bell,
+  BellRing,
+  Users,
+  UserCheck,
+  UserPlus
 } from 'lucide-react';
-import type { Topic, Card } from '../services/storage';
+import type { Topic, Card, Teacher, Notification } from '../services/storage';
 import { 
   getTopics, 
   addTopic, 
@@ -24,20 +29,41 @@ import {
   deleteTopic, 
   getCards, 
   addCard, 
-  deleteCard 
+  deleteCard,
+  getNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  getTeachers,
+  addTeacher,
+  deleteTeacher
 } from '../services/storage';
 import { t, type LangType } from '../services/i18n';
+import { DrawingCanvas } from './DrawingCanvas';
 
 interface AdminDashboardProps {
   onBackToRoles: () => void;
   lang: LangType;
+  currentTeacher: Teacher | null;
 }
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles, lang }) => {
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles, lang, currentTeacher }) => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [cards, setCards] = useState<Card[]>([]);
   const [topicCardCounts, setTopicCardCounts] = useState<Record<string, number>>({});
+
+  // Tab and Notification states
+  const [currentTab, setCurrentTab] = useState<'activities' | 'teachers'>('activities');
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [selectedCardForView, setSelectedCardForView] = useState<Card | null>(null);
+
+  // Manage Teachers states
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [newTeacherUsername, setNewTeacherUsername] = useState('');
+  const [newTeacherName, setNewTeacherName] = useState('');
+  const [newTeacherPassword, setNewTeacherPassword] = useState('');
+  const [teacherMsg, setTeacherMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   // Form states
   const [showNewTopicForm, setShowNewTopicForm] = useState(false);
@@ -69,7 +95,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles, l
   // Fetch topics and calculate stats
   useEffect(() => {
     loadTopicsData();
-  }, []);
+  }, [currentTeacher]);
 
   // Fetch cards when selected topic changes
   useEffect(() => {
@@ -81,17 +107,153 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles, l
   const loadTopicsData = async () => {
     try {
       const allTopics = await getTopics();
-      setTopics(allTopics);
+      const isSuperAdmin = currentTeacher?.username === 'admin';
+      const filteredTopics = isSuperAdmin
+        ? allTopics
+        : allTopics.filter(t => t.creator === currentTeacher?.username);
+      
+      setTopics(filteredTopics);
       
       // Load card counts for each topic
       const counts: Record<string, number> = {};
-      for (const topic of allTopics) {
+      for (const topic of filteredTopics) {
         const topicCards = await getCards(topic.id);
         counts[topic.id] = topicCards.length;
       }
       setTopicCardCounts(counts);
     } catch (err) {
       console.error("خطأ أثناء جلب المواضيع:", err);
+    }
+  };
+
+  // Load and poll notifications
+  useEffect(() => {
+    if (!currentTeacher) return;
+    const fetchNotifications = async () => {
+      try {
+        const list = await getNotifications(currentTeacher.username);
+        setNotifications(list);
+      } catch (err) {
+        console.error("Error loading notifications:", err);
+      }
+    };
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 10000);
+    return () => clearInterval(interval);
+  }, [currentTeacher]);
+
+  // Load teachers if admin switches to teachers tab
+  const loadTeachersData = async () => {
+    try {
+      const list = await getTeachers();
+      setTeachers(list);
+    } catch (err) {
+      console.error("Error fetching teachers:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (currentTeacher?.username === 'admin' && currentTab === 'teachers') {
+      loadTeachersData();
+    }
+  }, [currentTab, currentTeacher]);
+
+  const handleMarkAllRead = async () => {
+    if (!currentTeacher) return;
+    try {
+      await markAllNotificationsAsRead(currentTeacher.username);
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    } catch (err) {
+      console.error("Error marking all read:", err);
+    }
+  };
+
+  const handleNotificationClick = async (notif: Notification) => {
+    if (!currentTeacher) return;
+    try {
+      // 1. Mark as read
+      if (!notif.isRead) {
+        await markNotificationAsRead(currentTeacher.username, notif.id);
+        setNotifications(prev => 
+          prev.map(n => n.id === notif.id ? { ...n, isRead: true } : n)
+        );
+      }
+      
+      // 2. Load the target topic
+      const allTopics = await getTopics();
+      const targetTopic = allTopics.find(t => t.id === notif.topicId);
+      if (targetTopic) {
+        setCurrentTab('activities');
+        setSelectedTopic(targetTopic);
+        
+        // 3. Load target topic's cards
+        const topicCards = await getCards(notif.topicId);
+        setCards(topicCards);
+        
+        // 4. Find card and open DrawingCanvas
+        const targetCard = topicCards.find(c => c.id === notif.cardId);
+        if (targetCard) {
+          setSelectedCardForView(targetCard);
+        } else {
+          alert(lang === 'ar' ? "عذراً، هذه البطاقة لم تعد موجودة." : "מצטערים, כרטיסייה זו כבר אינה קיימת.");
+        }
+      } else {
+        alert(lang === 'ar' ? "عذراً، هذا الموضوع لم يعد موجوداً." : "מצטערים, נושא זה כבר אינו קיים.");
+      }
+    } catch (err) {
+      console.error("Error handling notification click:", err);
+    }
+    setShowNotifications(false);
+  };
+
+  const handleAddTeacher = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setTeacherMsg(null);
+
+    const username = newTeacherUsername.trim().toLowerCase();
+    const name = newTeacherName.trim();
+    const password = newTeacherPassword.trim();
+
+    if (!username || !name || !password) {
+      setTeacherMsg({ text: t('error_missing_teacher_fields', lang), type: 'error' });
+      return;
+    }
+
+    if (username === 'admin') {
+      setTeacherMsg({ text: t('error_username_exists', lang), type: 'error' });
+      return;
+    }
+
+    try {
+      const allTeachers = await getTeachers();
+      if (allTeachers.some(t => t.username === username)) {
+        setTeacherMsg({ text: t('error_username_exists', lang), type: 'error' });
+        return;
+      }
+
+      await addTeacher(username, password, name);
+      setTeacherMsg({ text: t('teacher_added_success', lang), type: 'success' });
+      
+      setNewTeacherUsername('');
+      setNewTeacherName('');
+      setNewTeacherPassword('');
+      loadTeachersData();
+    } catch (err) {
+      console.error("Error adding teacher:", err);
+      setTeacherMsg({ text: String(err), type: 'error' });
+    }
+  };
+
+  const handleDeleteTeacher = async (id: string) => {
+    if (window.confirm(t('delete_teacher_confirm', lang))) {
+      try {
+        await deleteTeacher(id);
+        setTeacherMsg({ text: t('teacher_deleted_success', lang), type: 'success' });
+        loadTeachersData();
+      } catch (err) {
+        console.error("Error deleting teacher:", err);
+        setTeacherMsg({ text: String(err), type: 'error' });
+      }
     }
   };
 
@@ -169,7 +331,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles, l
         newTopicDesc, 
         newTopicCover, 
         isPrivate, 
-        isPrivate ? accessCode : undefined
+        isPrivate ? accessCode : undefined,
+        currentTeacher?.username || 'admin'
       );
       // Reset form
       setNewTopicName('');
@@ -232,7 +395,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles, l
         editTopicDesc,
         editTopicCover,
         editIsPrivate,
-        editIsPrivate ? editAccessCode : undefined
+        editIsPrivate ? editAccessCode : undefined,
+        selectedTopic.creator || 'admin'
       );
       
       setSelectedTopic(updated);
@@ -347,8 +511,69 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles, l
           <h1>{t('admin_portal_title', lang)}</h1>
         </div>
         
-        {/* Stats Summary */}
-        <div className="stats-badges">
+        {/* Stats Summary & Notification Center */}
+        <div className="stats-badges" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          {/* Notifications Center Bell */}
+          <div className="notifications-wrapper">
+            <button 
+              className={`btn-notifications ${notifications.some(n => !n.isRead) ? 'has-unread' : ''}`}
+              onClick={() => setShowNotifications(!showNotifications)}
+              title={t('notifications_bell_tooltip', lang)}
+            >
+              {notifications.some(n => !n.isRead) ? <BellRing size={20} /> : <Bell size={20} />}
+              {notifications.filter(n => !n.isRead).length > 0 && (
+                <span className="notification-count-badge">
+                  {notifications.filter(n => !n.isRead).length}
+                </span>
+              )}
+            </button>
+
+            {showNotifications && (
+              <div className="notifications-dropdown glass-panel animate-scale-up" style={{ left: lang === 'ar' ? 0 : 'auto', right: lang === 'he' ? 0 : 'auto' }}>
+                <div className="notifications-dropdown-header">
+                  <h3>{t('notifications_title', lang)}</h3>
+                  {notifications.some(n => !n.isRead) && (
+                    <button className="btn-mark-all-read" onClick={handleMarkAllRead}>
+                      {t('mark_all_read', lang)}
+                    </button>
+                  )}
+                </div>
+                <div className="notifications-dropdown-list">
+                  {notifications.length === 0 ? (
+                    <div className="no-notifications-box">
+                      {t('no_notifications', lang)}
+                    </div>
+                  ) : (
+                    notifications.map(notif => (
+                      <div 
+                        key={notif.id} 
+                        className={`notification-item ${!notif.isRead ? 'unread' : ''}`}
+                        onClick={() => handleNotificationClick(notif)}
+                      >
+                        <div className="notification-item-avatar">
+                          {notif.studentAvatar}
+                        </div>
+                        <div className="notification-item-content">
+                          <div className="notification-item-desc">
+                            {notif.type === 'comment' ? (
+                              t('notification_comment', lang, { studentName: notif.studentName, topicName: notif.topicName })
+                            ) : (
+                              t('notification_reply', lang, { studentName: notif.studentName, topicName: notif.topicName })
+                            )}
+                          </div>
+                          <p className="notification-item-text">{notif.text}</p>
+                          <span className="notification-item-time">
+                            {new Date(notif.createdAt).toLocaleTimeString(lang === 'ar' ? 'ar-EG' : 'he-IL', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="stat-badge">
             <BookOpen size={16} />
             <span>{t('total_activities', lang)}: <strong>{totalTopics}</strong></span>
@@ -359,10 +584,153 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles, l
           </div>
         </div>
       </div>
+      
+      {/* Super admin Tab selector */}
+      {currentTeacher?.username === 'admin' && (
+        <div className="dashboard-tabs" style={{ padding: '0 30px', marginBottom: '20px' }}>
+          <button 
+            className={`tab-btn ${currentTab === 'activities' ? 'active' : ''}`}
+            onClick={() => {
+              setCurrentTab('activities');
+              setSelectedTopic(null);
+            }}
+          >
+            <Layers size={16} />
+            <span>{lang === 'ar' ? 'الفعاليات التعليمية' : 'פעילויות לימודיות'}</span>
+          </button>
+          <button 
+            className={`tab-btn ${currentTab === 'teachers' ? 'active' : ''}`}
+            onClick={() => {
+              setCurrentTab('teachers');
+              setSelectedTopic(null);
+            }}
+          >
+            <Users size={16} />
+            <span>{t('manage_teachers_tab', lang)}</span>
+          </button>
+        </div>
+      )}
 
       {/* Main Panel */}
       <div className="dashboard-content">
-        {!selectedTopic ? (
+        {currentTab === 'teachers' && currentTeacher?.username === 'admin' ? (
+          /* ================= TEACHERS MANAGEMENT VIEW ================= */
+          <div className="teachers-management animate-fade-in" style={{ padding: '0 10px' }}>
+            <div className="section-title-bar">
+              <h2>{t('manage_teachers_tab', lang)}</h2>
+            </div>
+
+            {teacherMsg && (
+              <div className={`teacher-alert ${teacherMsg.type}`}>
+                {teacherMsg.text}
+              </div>
+            )}
+
+            <div className="teachers-management-grid">
+              
+              {/* Form to Add Teacher */}
+              <div className="glass-panel" style={{ padding: '25px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.15rem', fontWeight: 700 }}>
+                  <UserPlus size={18} className="icon-purple" />
+                  {t('add_teacher_title', lang)}
+                </h3>
+                
+                <form onSubmit={handleAddTeacher} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  <div className="form-group">
+                    <label htmlFor="teacher-full-name">{t('teacher_name', lang)}</label>
+                    <input 
+                      id="teacher-full-name"
+                      type="text" 
+                      placeholder={lang === 'ar' ? "مثال: المعلمة ديما" : "לדוגמה: המורה דימה"}
+                      value={newTeacherName}
+                      onChange={(e) => setNewTeacherName(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="teacher-username-field">{t('teacher_username', lang)}</label>
+                    <input 
+                      id="teacher-username-field"
+                      type="text" 
+                      placeholder="e.g. deema_math"
+                      value={newTeacherUsername}
+                      onChange={(e) => setNewTeacherUsername(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="teacher-password-field">{t('teacher_password', lang)}</label>
+                    <input 
+                      id="teacher-password-field"
+                      type="password" 
+                      placeholder="••••••••"
+                      value={newTeacherPassword}
+                      onChange={(e) => setNewTeacherPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <button type="submit" className="btn-primary w-full" style={{ marginTop: '10px' }}>
+                    <Plus size={16} />
+                    <span>{t('add_teacher_btn', lang)}</span>
+                  </button>
+                </form>
+              </div>
+
+              {/* List of Teachers */}
+              <div className="glass-panel" style={{ padding: '25px' }}>
+                <h3 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.15rem', fontWeight: 700 }}>
+                  <UserCheck size={18} className="icon-purple" />
+                  {t('teachers_list_title', lang, { count: teachers.length })}
+                </h3>
+
+                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                  {teachers.length === 0 ? (
+                    <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px 0' }}>
+                      {lang === 'ar' ? "لا يوجد معلمون مضافون حالياً." : "אין מורים מתווספים כעת."}
+                    </p>
+                  ) : (
+                    teachers.map((tcher) => (
+                      <div key={tcher.id} className="teacher-item-card">
+                        <div className="teacher-item-info">
+                          <span className="teacher-item-name">{tcher.name}</span>
+                          <span className="teacher-item-username">@{tcher.username}</span>
+                          <span className="teacher-item-date">
+                            {t('teacher_created_at', lang, { date: new Date(tcher.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'he-IL') })}
+                          </span>
+                        </div>
+                        <button 
+                          type="button"
+                          className="delete-topic-btn"
+                          onClick={() => handleDeleteTeacher(tcher.id)}
+                          title={t('delete_teacher_btn', lang)}
+                          style={{
+                            background: 'rgba(239, 68, 68, 0.1)',
+                            border: '1px solid rgba(239, 68, 68, 0.2)',
+                            color: '#ef4444',
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'var(--transition-smooth)'
+                          }}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        ) : !selectedTopic ? (
           /* ================= TOPICS VIEW ================= */
           <div className="topics-management">
             <div className="section-title-bar">
@@ -543,9 +911,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles, l
                       </div>
                     </div>
                     
-                    <div className="card-body">
+                    <div className="card-body" style={{ display: 'flex', flexDirection: 'column' }}>
                       <h3>{topic.name}</h3>
-                      <p>{topic.description || t('empty_desc_placeholder', lang)}</p>
+                      <p style={{ flexGrow: 1 }}>{topic.description || t('empty_desc_placeholder', lang)}</p>
+                      
+                      {currentTeacher?.username === 'admin' && (
+                        <div className="topic-creator-badge">
+                          <span>{t('creator_label', lang, { name: topic.creator === 'admin' ? t('admin_label', lang) : topic.creator || 'admin' })}</span>
+                        </div>
+                      )}
                       
                       <div className="card-actions">
                         <button className="manage-cards-link">
@@ -854,6 +1228,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles, l
           </div>
         )}
       </div>
+
+      {/* Drawing Canvas Modal for viewing discussions */}
+      {selectedCardForView && (
+        <DrawingCanvas
+          imageSrc={selectedCardForView.image}
+          cardId={selectedCardForView.id}
+          onClose={() => setSelectedCardForView(null)}
+          lang={lang}
+          currentUser={{
+            name: currentTeacher?.name || 'معلم',
+            avatar: currentTeacher?.username === 'admin' ? '👑' : '👨‍🏫'
+          }}
+        />
+      )}
     </div>
   );
 };

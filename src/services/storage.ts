@@ -17,6 +17,28 @@ export interface Topic {
   createdAt: number;
   isPrivate: boolean;
   accessCode?: string; // Generated if isPrivate is true
+  creator?: string; // Username of the creator
+}
+
+export interface Teacher {
+  id: string;
+  username: string;
+  password?: string;
+  name: string;
+  createdAt: number;
+}
+
+export interface Notification {
+  id: string;
+  type: 'comment' | 'reply';
+  studentName: string;
+  studentAvatar: string;
+  topicId: string;
+  topicName: string;
+  cardId: string;
+  text: string;
+  createdAt: number;
+  isRead: boolean;
 }
 
 export interface Card {
@@ -99,7 +121,8 @@ export async function addTopic(
   description: string, 
   coverImage: string,
   isPrivate: boolean,
-  accessCode?: string
+  accessCode?: string,
+  creator?: string
 ): Promise<Topic> {
   const topicsRef = ref(db, 'topics');
   const newTopicRef = push(topicsRef);
@@ -111,7 +134,8 @@ export async function addTopic(
     description,
     coverImage,
     createdAt: Date.now(),
-    isPrivate
+    isPrivate,
+    creator: creator || 'admin'
   };
 
   if (isPrivate && accessCode) {
@@ -128,7 +152,8 @@ export async function updateTopic(
   description: string,
   coverImage: string,
   isPrivate: boolean,
-  accessCode?: string
+  accessCode?: string,
+  creator?: string
 ): Promise<Topic> {
   const updatedTopic: Topic = {
     id,
@@ -136,7 +161,8 @@ export async function updateTopic(
     description,
     coverImage,
     createdAt: Date.now(),
-    isPrivate
+    isPrivate,
+    creator: creator || 'admin'
   };
 
   if (isPrivate && accessCode) {
@@ -146,6 +172,9 @@ export async function updateTopic(
   const original = await getTopicById(id);
   if (original) {
     updatedTopic.createdAt = original.createdAt;
+    if (original.creator) {
+      updatedTopic.creator = original.creator;
+    }
   }
 
   await set(ref(db, `topics/${id}`), updatedTopic);
@@ -255,6 +284,10 @@ export async function addComment(
   };
 
   await set(ref(db, `comments/${cardId}/${id}`), newComment);
+  
+  // Trigger notification in background
+  triggerNotificationForCard(cardId, 'comment', studentName, studentAvatar, text);
+  
   return newComment;
 }
 
@@ -295,6 +328,9 @@ export async function addReply(
 
   await set(ref(db, `comments/${foundCardId}/${commentId}/replies/${replyId}`), newReply);
 
+  // Trigger notification in background
+  triggerNotificationForCard(foundCardId, 'reply', studentName, studentAvatar, text);
+
   // Return the updated comment (with sorted replies array)
   const updatedSnapshot = await get(ref(db, `comments/${foundCardId}/${commentId}`));
   const updatedComment = updatedSnapshot.val() as CardComment;
@@ -306,4 +342,122 @@ export async function addReply(
     updatedComment.replies = [];
   }
   return updatedComment;
+}
+
+// Notification trigger helper
+async function triggerNotificationForCard(
+  cardId: string,
+  type: 'comment' | 'reply',
+  studentName: string,
+  studentAvatar: string,
+  text: string
+) {
+  try {
+    const cardSnapshot = await get(ref(db, `cards/${cardId}`));
+    if (cardSnapshot.exists()) {
+      const card = cardSnapshot.val();
+      const topicId = card.topicId;
+      const topic = await getTopicById(topicId);
+      if (topic) {
+        const creator = topic.creator || 'admin';
+        const topicName = topic.name;
+        
+        const notificationsRef = ref(db, `notifications/${creator}`);
+        const newNotificationRef = push(notificationsRef);
+        const notificationId = newNotificationRef.key || Math.random().toString(36).substring(2, 9);
+        
+        const newNotification = {
+          id: notificationId,
+          type,
+          studentName,
+          studentAvatar,
+          topicId,
+          topicName,
+          cardId,
+          text,
+          createdAt: Date.now(),
+          isRead: false
+        };
+        
+        await set(ref(db, `notifications/${creator}/${notificationId}`), newNotification);
+      }
+    }
+  } catch (err) {
+    console.error("Error triggering notification:", err);
+  }
+}
+
+// TEACHERS DATABASE OPERATIONS
+export async function getTeachers(): Promise<Teacher[]> {
+  const teachersRef = ref(db, 'teachers');
+  const snapshot = await get(teachersRef);
+  if (snapshot.exists()) {
+    return Object.values(snapshot.val()) as Teacher[];
+  }
+  return [];
+}
+
+export async function addTeacher(username: string, password: string, name: string): Promise<Teacher> {
+  const teachersRef = ref(db, 'teachers');
+  const newTeacherRef = push(teachersRef);
+  const id = newTeacherRef.key || Math.random().toString(36).substring(2, 9);
+  
+  const newTeacher: Teacher = {
+    id,
+    username: username.trim().toLowerCase(),
+    password: password.trim(),
+    name: name.trim(),
+    createdAt: Date.now()
+  };
+  
+  await set(ref(db, `teachers/${id}`), newTeacher);
+  return newTeacher;
+}
+
+export async function deleteTeacher(id: string): Promise<void> {
+  await remove(ref(db, `teachers/${id}`));
+}
+
+export async function verifyTeacher(username: string, password: string): Promise<Teacher | null> {
+  const u = username.trim().toLowerCase();
+  const p = password.trim();
+  
+  // Fallback for default admin
+  if (u === 'admin' && p === '2026') {
+    return {
+      id: 'admin_id',
+      username: 'admin',
+      name: 'المدير العام',
+      createdAt: 0
+    };
+  }
+  
+  const teachers = await getTeachers();
+  const found = teachers.find(t => t.username === u && t.password === p);
+  return found || null;
+}
+
+// NOTIFICATIONS RETRIEVAL OPERATIONS
+export async function getNotifications(username: string): Promise<Notification[]> {
+  const notificationsRef = ref(db, `notifications/${username}`);
+  const snapshot = await get(notificationsRef);
+  if (snapshot.exists()) {
+    const list = Object.values(snapshot.val()) as Notification[];
+    list.sort((a, b) => b.createdAt - a.createdAt); // newest first
+    return list;
+  }
+  return [];
+}
+
+export async function markNotificationAsRead(username: string, notificationId: string): Promise<void> {
+  await set(ref(db, `notifications/${username}/${notificationId}/isRead`), true);
+}
+
+export async function markAllNotificationsAsRead(username: string): Promise<void> {
+  const notifications = await getNotifications(username);
+  for (const notif of notifications) {
+    if (!notif.isRead) {
+      await markNotificationAsRead(username, notif.id);
+    }
+  }
 }

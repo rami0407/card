@@ -11,8 +11,8 @@ import {
   AlertTriangle,
   X
 } from 'lucide-react';
-import type { Topic } from './services/storage';
-import { getTopicById, getTopicByCode } from './services/storage';
+import type { Topic, Teacher } from './services/storage';
+import { getTopicById, getTopicByCode, verifyTeacher } from './services/storage';
 import { t, type LangType } from './services/i18n';
 
 type UserRole = 'none' | 'admin' | 'student';
@@ -20,6 +20,7 @@ type UserRole = 'none' | 'admin' | 'student';
 function App() {
   console.log("digital_cards_app version: 1.0.1 - cache bust");
   const [role, setRole] = useState<UserRole>('none');
+  const [currentTeacher, setCurrentTeacher] = useState<Teacher | null>(null);
 
   const [lang, setLang] = useState<LangType>(() => {
     return (localStorage.getItem('dc_lang') as LangType) || 'ar';
@@ -122,33 +123,40 @@ function App() {
     }
   };
 
-  const handleAdminSubmit = (e: React.FormEvent) => {
+  const handleAdminSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAdminLoginError(null);
 
     const u = adminUsername.trim().toLowerCase();
     const p = adminPassword.trim();
 
-    // Verify admin credentials
-    if ((u === 'admin' && (p === 'admin' || p === '2026')) || (u === 'teacher' && p === '123456')) {
-      setRole('admin');
-      setShowAdminLogin(false);
-      setAdminUsername('');
-      setAdminPassword('');
-    } else {
+    try {
+      const verified = await verifyTeacher(u, p);
+      if (verified) {
+        setRole('admin');
+        setCurrentTeacher(verified);
+        setShowAdminLogin(false);
+        setAdminUsername('');
+        setAdminPassword('');
+      } else {
+        setAdminLoginError('admin_login_error_text');
+      }
+    } catch (err) {
+      console.error("Login verification failed:", err);
       setAdminLoginError('admin_login_error_text');
     }
   };
 
   const handleBackToLanding = () => {
     setRole('none');
+    setCurrentTeacher(null);
     // Keep name, clear the code for security
     setEnteredCode('');
     setValidationError(null);
   };
 
   if (role === 'admin') {
-    return <AdminDashboard onBackToRoles={handleBackToLanding} lang={lang} />;
+    return <AdminDashboard onBackToRoles={handleBackToLanding} lang={lang} currentTeacher={currentTeacher} />;
   }
 
   if (role === 'student') {

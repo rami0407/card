@@ -119,7 +119,36 @@ export const translations = {
     validation_topic_required: "الرجاء إدخال اسم الموضوع وصورة الغلاف",
     error_adding_topic: "حدث خطأ أثناء إضافة الموضوع:",
     error_editing_topic: "حدث خطأ أثناء تعديل الموضوع:",
-    confirm_delete_card: "هل أنت متأكد من حذف هذه البطاقة؟ سيتم حذف جميع تعليقات الطلاب عليها أيضاً."
+    confirm_delete_card: "هل أنت متأكد من حذف هذه البطاقة؟ سيتم حذف جميع تعليقات الطلاب عليها أيضاً.",
+    
+    // Notifications Center
+    notifications_title: "الإشعارات",
+    no_notifications: "لا توجد إشعارات جديدة",
+    notification_comment: "علّق {studentName} على بطاقة في {topicName}",
+    notification_reply: "ردّ {studentName} على تعليق في {topicName}",
+    mark_all_read: "تحديد الكل كمقروء",
+    notifications_bell_tooltip: "الإشعارات",
+    
+    // Teacher Management
+    manage_teachers_tab: "إدارة المعلمين",
+    add_teacher_title: "إضافة معلم جديد",
+    teacher_username: "اسم المستخدم للمعلم:",
+    teacher_name: "اسم المعلم الكامل:",
+    teacher_password: "كلمة المرور:",
+    add_teacher_btn: "إضافة المعلم",
+    teachers_list_title: "المعلمون المضافون ({count})",
+    teacher_created_at: "تاريخ الإضافة: {date}",
+    delete_teacher_confirm: "هل أنت متأكد من حذف هذا المعلم؟ لن يتمكن من تسجيل الدخول بعد الآن.",
+    delete_teacher_btn: "حذف المعلم",
+    teacher_added_success: "تم إضافة المعلم بنجاح!",
+    teacher_deleted_success: "تم حذف المعلم بنجاح!",
+    error_missing_teacher_fields: "الرجاء تعبئة جميع الحقول المطلوبة.",
+    error_username_exists: "اسم المستخدم هذا موجود بالفعل!",
+    admin_only_feature: "هذه الميزة متاحة للمدير العام فقط.",
+    created_by_me: "الفعاليات الخاصة بي",
+    created_by_others: "فعاليات المعلمين الآخرين",
+    creator_label: "بواسطة: {name}",
+    admin_label: "المدير العام"
   },
   he: {
     // Onboarding / Landing
@@ -238,7 +267,36 @@ export const translations = {
     validation_topic_required: "אנא הזן את שם הנושא ותמונת העטיפה",
     error_adding_topic: "אירעה שגיאה במהלך הוספת הנושא:",
     error_editing_topic: "אירעה שגיאה במהלך עריכת הנושא:",
-    confirm_delete_card: "האם אתה בטוח שברצונך למחוק כרטיסייה זו? כל תגובות התלמידים עליה יימחקו גם כן."
+    confirm_delete_card: "האם אתה בטוח שברצונך למחוק כרטיסייה זו? כל תגובות התלמידים עליה יימחקו גם כן.",
+    
+    // Notifications Center
+    notifications_title: "התראות",
+    no_notifications: "אין התראות חדשות",
+    notification_comment: "הגיב {studentName} על כרטיסייה ב-{topicName}",
+    notification_reply: "{studentName} הגיב לתגובה ב-{topicName}",
+    mark_all_read: "סמן הכל כנקרא",
+    notifications_bell_tooltip: "התראות",
+    
+    // Teacher Management
+    manage_teachers_tab: "ניהול מורים",
+    add_teacher_title: "הוספת מורה חדש",
+    teacher_username: "שם המשתמש של המורה:",
+    teacher_name: "שם המלא של המורה:",
+    teacher_password: "סיסמה:",
+    add_teacher_btn: "הוסף מורה",
+    teachers_list_title: "מורים שנוספו ({count})",
+    teacher_created_at: "תאריך הוספה: {date}",
+    delete_teacher_confirm: "האם אתה בטוח שברצונך למחוק מורה זה? הוא לא יוכל להתחבר יותר.",
+    delete_teacher_btn: "מחק מורה",
+    teacher_added_success: "המורה נוסף בהצלחה!",
+    teacher_deleted_success: "המורה נמחק בהצלחה!",
+    error_missing_teacher_fields: "אנא מלא את כל השדות הדרושים.",
+    error_username_exists: "שם משתמש זה כבר קיים!",
+    admin_only_feature: "תכונה זו זמינה למנהל הראשי בלבד.",
+    created_by_me: "הפעילויות שלי",
+    created_by_others: "פעילויות של מורים אחרים",
+    creator_label: "על ידי: {name}",
+    admin_label: "מנהל ראשי"
   }
 };
 
