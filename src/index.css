@@ -2687,5 +2687,160 @@ button {
   align-self: flex-start;
 }
 
+/* ==========================================================================
+   Suspense/Mystery Cards 3D Flip Effects
+   ========================================================================== */
+
+.flip-card-container {
+  background-color: transparent;
+  aspect-ratio: 4/3;
+  perspective: 1000px; /* 3D effect depth */
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  border: 2px solid var(--border-glass);
+}
+
+/* When flipped, rotate 180 degrees */
+.flip-card-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front, .flip-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden; /* Safari */
+  backface-visibility: hidden;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* Front Side: Mystery cover */
+.flip-card-front {
+  background: radial-gradient(circle at center, #1e1b4b 0%, #09090b 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid rgba(251, 191, 36, 0.15);
+  transition: var(--transition-smooth);
+}
+
+.flip-card-front:hover {
+  border-color: #fbbf24;
+  box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
+}
+
+.mystery-cover-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.12) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: pulse-glow 3s infinite ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+  50% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+}
+
+.mystery-question-mark {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #fbbf24;
+  text-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+  animation: floatQuestion 3s ease-in-out infinite;
+}
+
+@keyframes floatQuestion {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.mystery-text {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-top: 10px;
+  padding: 0 15px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.flip-card-front:hover .mystery-text {
+  color: white;
+}
+
+.mystery-card-badge-top {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.65rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Back Side: Real card image (rotated initially) */
+.flip-card-back {
+  background: rgba(14, 20, 38, 0.4);
+  transform: rotateY(180deg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.toggle-mystery-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-muted);
+  padding: 10px;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-smooth);
+}
+
+.toggle-mystery-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+  transform: scale(1.1);
+}
+
+.toggle-mystery-btn.active {
+  background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+}
+
+.toggle-mystery-btn.active:hover {
+  background: linear-gradient(135deg, #fcd34d 0%, #b45309 100%);
+}
+
+
 
 

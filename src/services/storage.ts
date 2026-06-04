@@ -46,6 +46,7 @@ export interface Card {
   topicId: string;
   image: string; // Base64 representation of image
   createdAt: number;
+  isMystery?: boolean; // If true, card is hidden by default
 }
 
 export interface CardReply {
@@ -234,6 +235,10 @@ export async function deleteCard(cardId: string): Promise<void> {
   await remove(ref(db, `cards/${cardId}`));
   // Also clean up comments
   await remove(ref(db, `comments/${cardId}`));
+}
+
+export async function updateCardMystery(cardId: string, isMystery: boolean): Promise<void> {
+  await set(ref(db, `cards/${cardId}/isMystery`), isMystery);
 }
 
 // COMMENTS & DISCUSSIONS OPERATIONS

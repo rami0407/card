@@ -148,7 +148,12 @@ export const translations = {
     created_by_me: "الفعاليات الخاصة بي",
     created_by_others: "فعاليات المعلمين الآخرين",
     creator_label: "بواسطة: {name}",
-    admin_label: "المدير العام"
+    admin_label: "المدير العام",
+    
+    // Mystery Cards
+    card_mystery_toggle: "تفعيل التشويق ✨",
+    mystery_card_cover_label: "انقر لكشف السر والمفاجأة! 🔍",
+    mystery_badge: "بطاقة تشويق"
   },
   he: {
     // Onboarding / Landing
@@ -294,9 +299,14 @@ export const translations = {
     error_username_exists: "שם משתמש זה כבר קיים!",
     admin_only_feature: "תכונה זו זמינה למנהל הראשי בלבד.",
     created_by_me: "הפעילויות שלי",
-    created_by_others: "פעילויות של מורים אחרים",
+    created_by_others: "פעילויות של מורים אחרين",
     creator_label: "על ידי: {name}",
-    admin_label: "מנהל ראשי"
+    admin_label: "מנהל ראשי",
+    
+    // Mystery Cards
+    card_mystery_toggle: "הפוך לכרטיסיית הפתעה ✨",
+    mystery_card_cover_label: "לחץ כדי לגלות את ההפתעה! 🔍",
+    mystery_badge: "כרטיסיית הפתעה"
   }
 };
 

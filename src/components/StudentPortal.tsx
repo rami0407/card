@@ -40,6 +40,17 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(initialActivity || null);
   const [cards, setCards] = useState<Card[]>([]);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+  const [revealedCards, setRevealedCards] = useState<Record<string, boolean>>({});
+  const [flippingCardId, setFlippingCardId] = useState<string | null>(null);
+
+  const handleRevealCard = (cardId: string) => {
+    if (flippingCardId) return;
+    setFlippingCardId(cardId);
+    setTimeout(() => {
+      setRevealedCards(prev => ({ ...prev, [cardId]: true }));
+      setFlippingCardId(null);
+    }, 600);
+  };
 
   // Fetch topics
   useEffect(() => {
@@ -249,21 +260,76 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
                 </div>
               ) : (
                 <div className="student-cards-grid">
-                  {cards.map((card) => (
-                    <div 
-                      key={card.id} 
-                      className="student-card-item"
-                      onClick={() => setSelectedCard(card)}
-                    >
-                      <div className="card-image-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}>
-                        <img src={card.image} alt="بطاقة تعليمية للطلاب" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                  {cards.map((card) => {
+                    const isMystery = !!card.isMystery;
+                    const isRevealed = !!revealedCards[card.id];
+                    const isFlipping = flippingCardId === card.id;
+
+                    if (isMystery && !isRevealed) {
+                      return (
+                        <div key={card.id} className="flip-card-container">
+                          <div className={`flip-card-inner ${isFlipping ? 'flipped' : ''}`}>
+                            
+                            {/* Front Side: Mystery cover */}
+                            <div className="flip-card-front" onClick={() => handleRevealCard(card.id)}>
+                              <div className="mystery-cover-glow"></div>
+                              <div className="mystery-question-mark">?</div>
+                              <span className="mystery-text">{t('mystery_card_cover_label', lang)}</span>
+                              <div className="mystery-card-badge-top">
+                                <Sparkles size={12} />
+                                <span>{t('mystery_badge', lang)}</span>
+                              </div>
+                            </div>
+
+                            {/* Back Side: Actual Image (Flipped) */}
+                            <div className="flip-card-back">
+                              <div className="card-image-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}>
+                                <img src={card.image} alt="بطاقة تعليمية للطلاب" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                              </div>
+                            </div>
+
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // Normal card or already revealed card
+                    return (
+                      <div 
+                        key={card.id} 
+                        className={`student-card-item ${isMystery ? 'was-mystery animate-scale-up' : ''}`}
+                        onClick={() => setSelectedCard(card)}
+                      >
+                        <div className="card-image-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}>
+                          <img src={card.image} alt="بطاقة تعليمية للطلاب" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                        </div>
+                        {isMystery && (
+                          <div className="mystery-badge-indicator-grid" style={{
+                            position: 'absolute',
+                            top: '10px',
+                            right: '10px',
+                            background: 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)',
+                            color: 'white',
+                            padding: '4px 8px',
+                            borderRadius: '12px',
+                            fontSize: '0.7rem',
+                            fontWeight: 'bold',
+                            zIndex: 5,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}>
+                            <Sparkles size={10} />
+                            <span>{t('mystery_badge', lang)}</span>
+                          </div>
+                        )}
+                        <div className="card-hover-indicator">
+                          <Sparkles size={20} />
+                          <span>{t('click_to_write_draw', lang)}</span>
+                        </div>
                       </div>
-                      <div className="card-hover-indicator">
-                        <Sparkles size={20} />
-                        <span>{t('click_to_write_draw', lang)}</span>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
