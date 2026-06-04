@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { AdminDashboard } from './components/AdminDashboard';
 import { StudentPortal } from './components/StudentPortal';
+import logoImage from './assets/logo.png';
 import { 
   Settings, 
   Sparkles,
-  Layers,
   Lock,
   User,
   Globe,
@@ -266,8 +266,8 @@ function App() {
         
         {/* Header Section */}
         <div className="logo-section">
-          <div className="logo-badge glow-badge">
-            <Layers size={36} className="logo-icon" />
+          <div className="logo-badge glow-badge" style={{ background: '#ffffff', padding: '6px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <img src={logoImage} alt="School Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <h1 className="main-title">{t('app_title', lang)}</h1>
           <p className="subtitle">{t('app_subtitle', lang)}</p>
