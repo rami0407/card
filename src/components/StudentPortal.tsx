@@ -303,26 +303,6 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
                         <div className="card-image-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}>
                           <img src={card.image} alt="بطاقة تعليمية للطلاب" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                         </div>
-                        {isMystery && (
-                          <div className="mystery-badge-indicator-grid" style={{
-                            position: 'absolute',
-                            top: '10px',
-                            right: '10px',
-                            background: 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)',
-                            color: 'white',
-                            padding: '4px 8px',
-                            borderRadius: '12px',
-                            fontSize: '0.7rem',
-                            fontWeight: 'bold',
-                            zIndex: 5,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px'
-                          }}>
-                            <Sparkles size={10} />
-                            <span>{t('mystery_badge', lang)}</span>
-                          </div>
-                        )}
                         <div className="card-hover-indicator">
                           <Sparkles size={20} />
                           <span>{t('click_to_write_draw', lang)}</span>

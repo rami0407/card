@@ -151,9 +151,9 @@ export const translations = {
     admin_label: "المدير العام",
     
     // Mystery Cards
-    card_mystery_toggle: "تفعيل التشويق ✨",
-    mystery_card_cover_label: "انقر لكشف السر والمفاجأة! 🔍",
-    mystery_badge: "بطاقة تشويق"
+    card_mystery_toggle: "تفعيل قلب البطاقة ✨",
+    mystery_card_cover_label: "انقر لقلب البطاقة! 🔍",
+    mystery_badge: "قلب البطاقة"
   },
   he: {
     // Onboarding / Landing
@@ -304,9 +304,9 @@ export const translations = {
     admin_label: "מנהל ראשי",
     
     // Mystery Cards
-    card_mystery_toggle: "הפוך לכרטיסיית הפתעה ✨",
-    mystery_card_cover_label: "לחץ כדי לגלות את ההפתעה! 🔍",
-    mystery_badge: "כרטיסיית הפתעה"
+    card_mystery_toggle: "הפעל היפוך כרטיסייה ✨",
+    mystery_card_cover_label: "לחץ כדי להפוך את הכרטיסייה! 🔍",
+    mystery_badge: "הפוך כרטיסייה"
   }
 };
 
