@@ -6,8 +6,8 @@ export const translations = {
     // Onboarding / Landing
     app_title: "العبارات الضوئية",
     app_subtitle: "اكتب وتحدّث وعبّر عن البطاقات التعليمية التفاعلية",
-    student_name: "اسم الطالب:",
-    student_name_placeholder: "اكتب اسمك الثلاثي هنا...",
+    student_name: "اسم المشترك:",
+    student_name_placeholder: "اكتب اسمك الكامل هنا...",
     access_code: "رمز الدخول (الكود):",
     access_code_placeholder_direct: "أدخل كود الدخول الخاص الذي أرسله المعلم...",
     access_code_placeholder_general: "أدخل رمز الفعالية الخاصة المكون من 4 أرقام...",
@@ -49,7 +49,7 @@ export const translations = {
     empty_topic_desc: "لم يقم المعلم بإضافة بطاقات إلى هذا الموضوع بعد. يرجى مراجعة المواضيع الأخرى.",
     click_to_write_draw: "اضغط للكتابة والرسم",
     visitor: "زائر",
-    welcome_hero: "مرحباً بك يا بطل! 🌟",
+    welcome_hero: "مرحباً بك! 🌟",
     welcome_hero_desc: "أدخل اسمك واختر صورتك الرمزية لتبدأ رحلتك التفاعلية معنا.",
     enter_name_here: "اكتب اسمك هنا:",
     choose_avatar: "اختر الرمز المفضل لديك:",
@@ -57,8 +57,8 @@ export const translations = {
 
     // Drawing Canvas
     modal_title: "عرض البطاقة الرقمية والمناقشة",
-    discussion_title: "نقاش وتعليقات الطلاب ({count})",
-    write_comment_placeholder: "اكتب تعليقاً أو سؤالاً حول هذه البطاقة للطلاب...",
+    discussion_title: "نقاش وتعليقات المشاركين ({count})",
+    write_comment_placeholder: "اكتب تعليقاً أو سؤالاً حول هذه البطاقة للمشاركين...",
     no_comments_yet: "لا توجد تعليقات بعد. كن أول من يكتب تعليقاً ويبدأ النقاش!",
     reply_to_comment: "ردّ على هذا التعليق ({count})",
     reply_input_placeholder: "اكتب رداً على تعليق {name}...",
@@ -165,7 +165,7 @@ export const translations = {
     // Onboarding / Landing
     app_title: "ביטויים אופטיים",
     app_subtitle: "כתוב, דבר והביע את עצמך על גבי כרטיסיות למידה אינטראקטיביות",
-    student_name: "שם התלמיד:",
+    student_name: "שם המשתתף:",
     student_name_placeholder: "כתוב את שמך המלא כאן...",
     access_code: "קוד כניסה:",
     access_code_placeholder_direct: "הזן קוד כניסה שקיבלת מהמורה...",
@@ -208,7 +208,7 @@ export const translations = {
     empty_topic_desc: "המורה טרם הוסיף כרטיסיות לנושא זה. אנא בדוק נושאים אחרים.",
     click_to_write_draw: "לחץ כדי לכתוב ולדבר",
     visitor: "אורח",
-    welcome_hero: "ברוך הבא, גיבור! 🌟",
+    welcome_hero: "ברוך הבא! 🌟",
     welcome_hero_desc: "הכנס את שמך ובחר את הדמות שלך כדי להתחיל את המסע האינטראקטיבי איתנו.",
     enter_name_here: "כתוב את שמך כאן:",
     choose_avatar: "בחר את הסמל המועדף עליך:",
@@ -216,8 +216,8 @@ export const translations = {
 
     // Drawing Canvas
     modal_title: "הצגת כרטיסיית למידה ודיון",
-    discussion_title: "תגובות ודיון תלמידים ({count})",
-    write_comment_placeholder: "כתוב תגובה או שאלה על כרטיסייה זו עבור התלמידים...",
+    discussion_title: "תגובות ודיון משתתפים ({count})",
+    write_comment_placeholder: "כתוב תגובה או שאלה על כרטיסייה זו עבור המשתתפים...",
     no_comments_yet: "אין תגובות עדיין. היה הראשון לכתוב תגובה ולהתחיל את הדיון!",
     reply_to_comment: "הגב לתגובה זו ({count})",
     reply_input_placeholder: "כתוב תגובה לתגובה של {name}...",
