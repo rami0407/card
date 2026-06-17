@@ -31,6 +31,7 @@ import {
   addCard, 
   deleteCard,
   updateCardMystery,
+  updateCardMysteryText,
   duplicateTopic,
   getNotifications,
   markNotificationAsRead,
@@ -504,6 +505,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles, l
       setCards(prev => prev.map(c => c.id === cardId ? { ...c, isMystery: !currentVal } : c));
     } catch (err) {
       console.error("Error toggling mystery card:", err);
+    }
+  };
+
+  const handleSaveMysteryText = async (cardId: string, text: string) => {
+    try {
+      await updateCardMysteryText(cardId, text);
+      setCards(prev => prev.map(c => c.id === cardId ? { ...c, mysteryText: text } : c));
+    } catch (err) {
+      console.error("Error saving mystery text:", err);
     }
   };
 
@@ -1158,48 +1168,65 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles, l
                 ) : (
                   <div className="cards-thumbnail-grid">
                     {cards.map((card) => (
-                      <div key={card.id} className="card-thumbnail-item" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
-                        <img src={card.image} alt={t('modal_title', lang)} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-                        
-                        {card.isMystery && (
-                          <div className="mystery-badge-indicator" style={{
-                            position: 'absolute',
-                            top: '10px',
-                            right: '10px',
-                            background: 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)',
-                            color: 'white',
-                            padding: '4px 8px',
-                            borderRadius: '12px',
-                            fontSize: '0.7rem',
-                            fontWeight: 'bold',
-                            zIndex: 5,
-                            boxShadow: '0 2px 8px rgba(217, 119, 6, 0.4)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px'
-                          }}>
-                            <Sparkles size={10} />
-                            <span>{t('mystery_badge', lang)}</span>
-                          </div>
-                        )}
+                      <div key={card.id} className="card-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div className="card-thumbnail-item" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', width: '100%' }}>
+                          <img src={card.image} alt={t('modal_title', lang)} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                          
+                          {card.isMystery && (
+                            <div className="mystery-badge-indicator" style={{
+                              position: 'absolute',
+                              top: '10px',
+                              right: '10px',
+                              background: 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)',
+                              color: 'white',
+                              padding: '4px 8px',
+                              borderRadius: '12px',
+                              fontSize: '0.7rem',
+                              fontWeight: 'bold',
+                              zIndex: 5,
+                              boxShadow: '0 2px 8px rgba(217, 119, 6, 0.4)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}>
+                              <Sparkles size={10} />
+                              <span>{t('mystery_badge', lang)}</span>
+                            </div>
+                          )}
 
-                        <div className="hover-delete-overlay" style={{ display: 'flex', gap: '8px' }}>
-                          <button 
-                            type="button"
-                            className={`toggle-mystery-btn ${card.isMystery ? 'active' : ''}`}
-                            onClick={() => handleToggleCardMystery(card.id, !!card.isMystery)}
-                            title={t('card_mystery_toggle', lang)}
-                          >
-                            <Sparkles size={18} />
-                          </button>
-                          <button 
-                            className="delete-card-btn"
-                            onClick={() => handleDeleteCard(card.id)}
-                            title={t('delete_card_tooltip', lang)}
-                          >
-                            <Trash2 size={18} />
-                          </button>
+                          <div className="hover-delete-overlay" style={{ display: 'flex', gap: '8px' }}>
+                            <button 
+                              type="button"
+                              className={`toggle-mystery-btn ${card.isMystery ? 'active' : ''}`}
+                              onClick={() => handleToggleCardMystery(card.id, !!card.isMystery)}
+                              title={t('card_mystery_toggle', lang)}
+                            >
+                              <Sparkles size={18} />
+                            </button>
+                            <button 
+                              className="delete-card-btn"
+                              onClick={() => handleDeleteCard(card.id)}
+                              title={t('delete_card_tooltip', lang)}
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
                         </div>
+
+                        {card.isMystery && (
+                          <input
+                            type="text"
+                            className="mystery-text-input"
+                            defaultValue={card.mysteryText || ''}
+                            placeholder={t('mystery_text_placeholder', lang)}
+                            onBlur={(e) => handleSaveMysteryText(card.id, e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                (e.target as HTMLInputElement).blur();
+                              }
+                            }}
+                          />
+                        )}
                       </div>
                     ))}
                   </div>

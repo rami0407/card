@@ -154,6 +154,7 @@ export const translations = {
     card_mystery_toggle: "تفعيل قلب البطاقة ✨",
     mystery_card_cover_label: "انقر لقلب البطاقة! 🔍",
     mystery_badge: "قلب البطاقة",
+    mystery_text_placeholder: "عنوان الغلاف (مثال: سؤال 1)",
 
     // Duplicating Activities
     duplicate_topic_btn: "نسخ الفعالية",
@@ -313,6 +314,7 @@ export const translations = {
     card_mystery_toggle: "הפעל היפוך כרטיסייה ✨",
     mystery_card_cover_label: "לחץ כדי להפוך את הכרטיסייה! 🔍",
     mystery_badge: "הפוך כרטיסייה",
+    mystery_text_placeholder: "כותרת עטיפה (למשל: שאלה 1)",
 
     // Duplicating Activities
     duplicate_topic_btn: "שכפל פעילות",

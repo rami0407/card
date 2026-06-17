@@ -47,6 +47,7 @@ export interface Card {
   image: string; // Base64 representation of image
   createdAt: number;
   isMystery?: boolean; // If true, card is hidden by default
+  mysteryText?: string; // Custom cover text
 }
 
 export interface CardReply {
@@ -241,6 +242,10 @@ export async function updateCardMystery(cardId: string, isMystery: boolean): Pro
   await set(ref(db, `cards/${cardId}/isMystery`), isMystery);
 }
 
+export async function updateCardMysteryText(cardId: string, text: string): Promise<void> {
+  await set(ref(db, `cards/${cardId}/mysteryText`), text);
+}
+
 export async function duplicateTopic(
   topicId: string,
   newCreator?: string,
@@ -282,6 +287,9 @@ export async function duplicateTopic(
     };
     if (card.isMystery !== undefined) {
       newCard.isMystery = card.isMystery;
+    }
+    if (card.mysteryText !== undefined) {
+      newCard.mysteryText = card.mysteryText;
     }
     await set(ref(db, `cards/${id}`), newCard);
   }

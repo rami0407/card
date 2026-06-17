@@ -11,6 +11,14 @@ import { getTopics, getCards } from '../services/storage';
 import { DrawingCanvas } from './DrawingCanvas';
 import { t, type LangType } from '../services/i18n';
 
+const getMysteryFontSize = (text?: string) => {
+  if (!text) return '3.5rem';
+  if (text.length <= 4) return '2.8rem';
+  if (text.length <= 12) return '2rem';
+  if (text.length <= 20) return '1.5rem';
+  return '1.2rem';
+};
+
 interface StudentPortalProps {
   onBackToRoles: () => void;
   initialActivity?: Topic | null;
@@ -273,7 +281,22 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
                             {/* Front Side: Mystery cover */}
                             <div className="flip-card-front" onClick={() => handleRevealCard(card.id)}>
                               <div className="mystery-cover-glow"></div>
-                              <div className="mystery-question-mark">?</div>
+                              <div className="mystery-question-mark" style={{
+                                fontSize: getMysteryFontSize(card.mysteryText),
+                                padding: '0 10px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'normal',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 3,
+                                WebkitBoxOrient: 'vertical',
+                                wordBreak: 'break-word',
+                                lineHeight: '1.2',
+                                textAlign: 'center',
+                                maxWidth: '90%'
+                              }}>
+                                {card.mysteryText || '?'}
+                              </div>
                               <span className="mystery-text">{t('mystery_card_cover_label', lang)}</span>
                               <div className="mystery-card-badge-top">
                                 <Sparkles size={12} />
