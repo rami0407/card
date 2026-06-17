@@ -153,7 +153,13 @@ export const translations = {
     // Mystery Cards
     card_mystery_toggle: "تفعيل قلب البطاقة ✨",
     mystery_card_cover_label: "انقر لقلب البطاقة! 🔍",
-    mystery_badge: "قلب البطاقة"
+    mystery_badge: "قلب البطاقة",
+
+    // Duplicating Activities
+    duplicate_topic_btn: "نسخ الفعالية",
+    duplicate_topic_success: "تم نسخ الفعالية بنجاح!",
+    duplicate_suffix: " (نسخة)",
+    duplicating_progress: "جاري نسخ الفعالية والبطاقات..."
   },
   he: {
     // Onboarding / Landing
@@ -306,7 +312,13 @@ export const translations = {
     // Mystery Cards
     card_mystery_toggle: "הפעל היפוך כרטיסייה ✨",
     mystery_card_cover_label: "לחץ כדי להפוך את הכרטיסייה! 🔍",
-    mystery_badge: "הפוך כרטיסייה"
+    mystery_badge: "הפוך כרטיסייה",
+
+    // Duplicating Activities
+    duplicate_topic_btn: "שכפל פעילות",
+    duplicate_topic_success: "הפעילות שוכפלה בהצלחה!",
+    duplicate_suffix: " (עותק)",
+    duplicating_progress: "משכפל פעילות וכרטיסיות..."
   }
 };
 

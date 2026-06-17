@@ -241,6 +241,54 @@ export async function updateCardMystery(cardId: string, isMystery: boolean): Pro
   await set(ref(db, `cards/${cardId}/isMystery`), isMystery);
 }
 
+export async function duplicateTopic(
+  topicId: string,
+  newCreator?: string,
+  copySuffix: string = ' (نسخة)'
+): Promise<Topic> {
+  const originalTopic = await getTopicById(topicId);
+  if (!originalTopic) {
+    throw new Error('Original topic not found');
+  }
+
+  // 1. Create a new topic
+  const newAccessCode = originalTopic.isPrivate
+    ? Math.floor(1000 + Math.random() * 9000).toString()
+    : undefined;
+
+  const duplicatedTopic = await addTopic(
+    originalTopic.name + copySuffix,
+    originalTopic.description,
+    originalTopic.coverImage,
+    originalTopic.isPrivate,
+    newAccessCode,
+    newCreator || originalTopic.creator || 'admin'
+  );
+
+  // 2. Fetch original cards
+  const originalCards = await getCards(topicId);
+
+  // 3. Duplicate cards
+  for (const card of originalCards) {
+    const cardsRef = ref(db, 'cards');
+    const newCardRef = push(cardsRef);
+    const id = newCardRef.key || Math.random().toString(36).substring(2, 9);
+    
+    const newCard: Card = {
+      id,
+      topicId: duplicatedTopic.id,
+      image: card.image,
+      createdAt: Date.now()
+    };
+    if (card.isMystery !== undefined) {
+      newCard.isMystery = card.isMystery;
+    }
+    await set(ref(db, `cards/${id}`), newCard);
+  }
+
+  return duplicatedTopic;
+}
+
 // COMMENTS & DISCUSSIONS OPERATIONS
 
 export async function getComments(cardId: string): Promise<CardComment[]> {

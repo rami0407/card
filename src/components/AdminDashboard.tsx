@@ -31,6 +31,7 @@ import {
   addCard, 
   deleteCard,
   updateCardMystery,
+  duplicateTopic,
   getNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
@@ -58,6 +59,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles, l
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedCardForView, setSelectedCardForView] = useState<Card | null>(null);
+  const [isDuplicating, setIsDuplicating] = useState(false);
 
   // Manage Teachers states
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -505,12 +507,53 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles, l
     }
   };
 
+  const handleDuplicateTopic = async (topicId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isDuplicating) return;
+    
+    setIsDuplicating(true);
+    try {
+      const suffix = t('duplicate_suffix', lang);
+      await duplicateTopic(topicId, currentTeacher?.username || 'admin', suffix);
+      alert(t('duplicate_topic_success', lang));
+      loadTopicsData();
+    } catch (err) {
+      console.error("Error duplicating topic:", err);
+      alert(err);
+    } finally {
+      setIsDuplicating(false);
+    }
+  };
+
   // Calculate totals for stats
   const totalTopics = topics.length;
   const totalCards = Object.values(topicCardCounts).reduce((acc, curr) => acc + curr, 0);
 
   return (
     <div className="dashboard-layout">
+      {isDuplicating && (
+        <div className="upload-progress-info" style={{
+          position: 'fixed',
+          top: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 9999,
+          background: 'rgba(15, 23, 42, 0.95)',
+          border: '1px solid var(--primary)',
+          borderRadius: '30px',
+          padding: '10px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          boxShadow: 'var(--shadow-neon)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)'
+        }}>
+          <div className="spinner"></div>
+          <span style={{ fontSize: '0.9rem', color: 'white', fontWeight: 600 }}>{t('duplicating_progress', lang)}</span>
+        </div>
+      )}
+
       {/* Sidebar / Header Controls */}
       <div className="dashboard-header-bar">
         <div className="header-info">
@@ -931,10 +974,31 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToRoles, l
                         </div>
                       )}
                       
-                      <div className="card-actions">
-                        <button className="manage-cards-link">
+                      <div className="card-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <button className="manage-cards-link" style={{ flexGrow: 1 }}>
                           <span>{t('manage_cards', lang)}</span>
                           <ChevronLeft size={16} />
+                        </button>
+                        <button 
+                          type="button"
+                          className="btn-share-action"
+                          onClick={(e) => handleDuplicateTopic(topic.id, e)}
+                          title={t('duplicate_topic_btn', lang)}
+                          style={{
+                            background: 'rgba(139, 92, 246, 0.1)',
+                            border: '1px solid rgba(139, 92, 246, 0.2)',
+                            color: '#a78bfa',
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'var(--transition-smooth)'
+                          }}
+                        >
+                          <Copy size={16} />
                         </button>
                         <button 
                           className="delete-topic-btn"
